@@ -12,10 +12,10 @@
         theme: {
           extend: {
             colors: {
-              wei: '#608BC1',
-              shu: '#6FA37F',
-              wu: '#D17D7D',
-              qun: '#A89B91',
+              wei: '#2e58a6', // 魏國藍
+              shu: '#3b8c4d', // 蜀國綠
+              wu: '#c23c3c',  // 吳國紅
+              qun: '#d4a017', // 群雄金/黃
               t_command: '#78808A',
               t_passive: '#9F8AC7',
               t_formation: '#C4A274',
@@ -38,7 +38,6 @@
         backdrop-filter: blur(20px);
         -webkit-backdrop-filter: blur(20px);
       }
-      /* Hide scrollbar for tabs */
       .no-scrollbar::-webkit-scrollbar {
         display: none;
       }
@@ -58,8 +57,6 @@
     <!-- React & ReactDOM -->
     <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
-    
-    <!-- Babel for JSX/TS transformation in browser -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 <script type="importmap">
 {
@@ -78,25 +75,36 @@
     <script type="text/babel" data-presets="typescript,react">
       const { useState, useMemo, useCallback, useEffect } = React;
 
-      // --- Icons (Replaced Lucide with inline SVGs for standalone) ---
+      // --- 定義與類型 ---
+      const Faction = { Wei: '魏', Shu: '蜀', Wu: '吳', Qun: '群' };
+      const TacticType = { Command: '指揮戰法', Passive: '被動戰法', Formation: '陣法', Assault: '突擊戰法', Troop: '兵種', Active: '主動戰法' };
+
+      // --- 資料庫 (從 constants.ts 遷移) ---
+      const GENERALS_DATA = [
+        { faction: Faction.Shu, name: '劉備 7' }, { faction: Faction.Shu, name: '龐統 7' }, { faction: Faction.Shu, name: '諸葛亮 7' }, { faction: Faction.Shu, name: 'SP諸葛亮 6' }, { faction: Faction.Shu, name: '關羽 7' }, { faction: Faction.Shu, name: 'SP關羽 7' }, { faction: Faction.Shu, name: 'SP黃月英 4' }, { faction: Faction.Shu, name: '黃忠 6' }, { faction: Faction.Shu, name: 'SP黃忠 6' }, { faction: Faction.Shu, name: '趙雲 6' }, { faction: Faction.Shu, name: '張飛 6' }, { faction: Faction.Shu, name: '姜維 6' }, { faction: Faction.Shu, name: '關銀屏 6' }, { faction: Faction.Shu, name: '魏延 6' }, { faction: Faction.Shu, name: '張苞 6' }, { faction: Faction.Shu, name: '關興 6' }, { faction: Faction.Shu, name: 'SP法正 6' }, { faction: Faction.Shu, name: '法正 4' }, { faction: Faction.Shu, name: '王平 5' }, { faction: Faction.Shu, name: '徐庶 5' }, { faction: Faction.Shu, name: '黃月英 4' }, { faction: Faction.Shu, name: '馬超 7' }, { faction: Faction.Shu, name: 'CO關平 6' }, { faction: Faction.Shu, name: '馬雲祿 5' }, { faction: Faction.Shu, name: '陳到 6' }, { faction: Faction.Shu, name: '嚴顏 6' }, { faction: Faction.Shu, name: '伊籍 6' },
+        { faction: Faction.Qun, name: 'SP馬超 7' }, { faction: Faction.Qun, name: 'SP皇甫嵩 6' }, { faction: Faction.Qun, name: 'SP袁紹 7' }, { faction: Faction.Qun, name: 'SP朱儁 6' }, { faction: Faction.Qun, name: '沮授 6' }, { faction: Faction.Qun, name: '貂蟬 4' }, { faction: Faction.Qun, name: 'SP貂蟬 6' }, { faction: Faction.Qun, name: '許攸 6' }, { faction: Faction.Qun, name: '呂布 7' }, { faction: Faction.Qun, name: '袁術 6' }, { faction: Faction.Qun, name: '公孫瓚 6' }, { faction: Faction.Qun, name: '張角 6' }, { faction: Faction.Qun, name: '于吉 7' }, { faction: Faction.Qun, name: '華佗 5' }, { faction: Faction.Qun, name: '左慈 5' }, { faction: Faction.Qun, name: '董卓 7' }, { faction: Faction.Qun, name: 'SP董卓 7' }, { faction: Faction.Qun, name: '孟獲 7' }, { faction: Faction.Qun, name: '呂玲綺 6' }, { faction: Faction.Qun, name: '祝融夫人 6' }, { faction: Faction.Qun, name: '兀突骨 6' }, { faction: Faction.Qun, name: '袁紹 6' }, { faction: Faction.Qun, name: '麴義 6' }, { faction: Faction.Qun, name: '朵思大王 6' }, { faction: Faction.Qun, name: '木鹿大王 6' }, { faction: Faction.Qun, name: '張讓 5' }, { faction: Faction.Qun, name: '李儒 5' }, { faction: Faction.Qun, name: '高順 5' }, { faction: Faction.Qun, name: '馬騰 5' }, { faction: Faction.Qun, name: '文醜 5' }, { faction: Faction.Qun, name: '華雄 5' }, { faction: Faction.Qun, name: '顏良 5' }, { faction: Faction.Qun, name: '高覽 5' }, { faction: Faction.Qun, name: '陳宮 5' }, { faction: Faction.Qun, name: '蔡文姬 3' }, { faction: Faction.Qun, name: '董白 3' }, { faction: Faction.Qun, name: 'SP張寶 6' }, { faction: Faction.Qun, name: 'SP張梁 5' }, { faction: Faction.Qun, name: '田豐 6' }, { faction: Faction.Qun, name: '兲丨Q 30' }, { faction: Faction.Qun, name: '雞枝風 3CM' }, { faction: Faction.Qun, name: '大麥克 3CM' }, { faction: Faction.Qun, name: '鄒氏 3' },
+        { faction: Faction.Wu, name: '孫尚香 6' }, { faction: Faction.Wu, name: '周泰 6' }, { faction: Faction.Wu, name: '凌統 6' }, { faction: Faction.Wu, name: '陸遜 7' }, { faction: Faction.Wu, name: '魯肅 6' }, { faction: Faction.Wu, name: '周瑜 6' }, { faction: Faction.Wu, name: 'SP周瑜 6' }, { faction: Faction.Wu, name: '孫權 6' }, { faction: Faction.Wu, name: 'CO大喬 6' }, { faction: Faction.Wu, name: 'CO小喬 5' }, { faction: Faction.Wu, name: '呂蒙 6' }, { faction: Faction.Wu, name: 'SP呂蒙 7' }, { faction: Faction.Wu, name: '太史慈 6' }, { faction: Faction.Wu, name: '孫堅 6' }, { faction: Faction.Wu, name: 'SP孫堅 7' }, { faction: Faction.Wu, name: '甘寧 6' }, { faction: Faction.Wu, name: '程普 5' }, { faction: Faction.Wu, name: '陸抗 6' }, { faction: Faction.Wu, name: '黃蓋 5' }, { faction: Faction.Wu, name: '諸葛格 4' }, { faction: Faction.Wu, name: '孫策 5' },
+        { faction: Faction.Wei, name: '司馬懿 7' }, { faction: Faction.Wei, name: '曹操 7' }, { faction: Faction.Wei, name: '滿寵 5' }, { faction: Faction.Wei, name: '典韋 6' }, { faction: Faction.Wei, name: 'SP典韋 6' }, { faction: Faction.Wei, name: '賈詡 7' }, { faction: Faction.Wei, name: 'SP荀彧 7' }, { faction: Faction.Wei, name: 'SP郭嘉 6' }, { faction: Faction.Wei, name: '荀攸 6' }, { faction: Faction.Wei, name: '張遼 7' }, { faction: Faction.Wei, name: '王元姬 5' }, { faction: Faction.Wei, name: '郭嘉 5' }, { faction: Faction.Wei, name: '王異 6' }, { faction: Faction.Wei, name: '龐德 5' }, { faction: Faction.Wei, name: 'SP龐德 6' }, { faction: Faction.Wei, name: 'CO曹丕 7' }, { faction: Faction.Wei, name: '郝昭 5' }, { faction: Faction.Wei, name: '曹仁 6' }, { faction: Faction.Wei, name: 'CO甄姬 5' }, { faction: Faction.Wei, name: '程昱 5' }, { faction: Faction.Wei, name: '許褚 6' }, { faction: Faction.Wei, name: '張郃 6' }, { faction: Faction.Wei, name: '徐晃 6' }, { faction: Faction.Wei, name: '夏侯惇 6' }, { faction: Faction.Wei, name: '鍾會 6' }, { faction: Faction.Wei, name: '王雙 5' }, { faction: Faction.Wei, name: '曹純 5' }, { faction: Faction.Wei, name: '于禁 5' }, { faction: Faction.Wei, name: '樂進 5' }, { faction: Faction.Wei, name: '鄧艾 5' }, { faction: Faction.Wei, name: '夏侯淵 5' }, { faction: Faction.Wei, name: '張春華 3' }, { faction: Faction.Wei, name: 'SP劉曄 6' }, { faction: Faction.Wei, name: 'SP曹真 6' }
+      ];
+
+      const TACTICS_DATA = [
+        { type: TacticType.Command, name: '暫避其鋒' }, { type: TacticType.Command, name: '盛氣淩敵' }, { type: TacticType.Command, name: '用武神通' }, { type: TacticType.Command, name: '夢中弒臣' }, { type: TacticType.Command, name: '挫銳' }, { type: TacticType.Command, name: '非攻制勝' }, { type: TacticType.Command, name: '鐵騎驅馳' }, { type: TacticType.Command, name: '撫輯軍民' }, { type: TacticType.Command, name: '禦敵屏障' }, { type: TacticType.Command, name: '長者之風' }, { type: TacticType.Command, name: '鋒芒畢露' }, { type: TacticType.Command, name: '整裝待發' }, { type: TacticType.Command, name: '義心昭烈' }, { type: TacticType.Command, name: '奇計良謀' }, { type: TacticType.Command, name: '橫戈躍馬' }, { type: TacticType.Command, name: '整軍經武' }, { type: TacticType.Command, name: '剛柔並濟' }, { type: TacticType.Command, name: '眾志成城' }, { type: TacticType.Command, name: '知己知彼' },
+        { type: TacticType.Passive, name: '功不唐捐' }, { type: TacticType.Passive, name: '整軍經武' }, { type: TacticType.Passive, name: '千里走單騎' }, { type: TacticType.Passive, name: '魅惑' }, { type: TacticType.Passive, name: '合軍聚眾' }, { type: TacticType.Passive, name: '忠勇益烈' }, { type: TacticType.Passive, name: '文武雙全' }, { type: TacticType.Passive, name: '以寡擊眾' }, { type: TacticType.Passive, name: '絕地反擊' }, { type: TacticType.Passive, name: '士爭先赴' }, { type: TacticType.Passive, name: '裸衣血戰' }, { type: TacticType.Passive, name: '血刃爭鋒' }, { type: TacticType.Passive, name: '眾動萬計' }, { type: TacticType.Passive, name: '太平道法' }, { type: TacticType.Passive, name: '自癒' }, { type: TacticType.Passive, name: '後發制人' }, { type: TacticType.Passive, name: '氣凌三軍' }, { type: TacticType.Passive, name: '虎踞鷹揚' }, { type: TacticType.Passive, name: '引弦力戰' }, { type: TacticType.Passive, name: '剛勇無前' }, { type: TacticType.Passive, name: '騎虎難下' }, { type: TacticType.Passive, name: '白眉' }, { type: TacticType.Passive, name: '兵無常勢' }, { type: TacticType.Passive, name: '士別三日' }, { type: TacticType.Passive, name: '乘勝長驅' },
+        { type: TacticType.Formation, name: '潛龍陣' }, { type: TacticType.Formation, name: '鋒矢陣' }, { type: TacticType.Formation, name: '八門金鎖陣' }, { type: TacticType.Formation, name: '箕形陣' }, { type: TacticType.Formation, name: '三勢陣' }, { type: TacticType.Formation, name: '行一陣' }, { type: TacticType.Formation, name: '武鋒陣' }, { type: TacticType.Formation, name: '長蛇陣' }, { type: TacticType.Formation, name: '魚鱗陣' },
+        { type: TacticType.Assault, name: '折衝禦侮' }, { type: TacticType.Assault, name: '暴戾無仁' }, { type: TacticType.Assault, name: '一騎當千' }, { type: TacticType.Assault, name: '百騎劫營' }, { type: TacticType.Assault, name: '當鋒摧決' }, { type: TacticType.Assault, name: '速乘其利' }, { type: TacticType.Assault, name: '彎弓飲羽' }, { type: TacticType.Assault, name: '鬼神霆威' }, { type: TacticType.Assault, name: '破甲' }, { type: TacticType.Assault, name: '克敵制勝' }, { type: TacticType.Assault, name: '先成其慮' }, { type: TacticType.Assault, name: '勇者得前' }, { type: TacticType.Assault, name: '左右開弓' }, { type: TacticType.Assault, name: '手起刀落' },
+        { type: TacticType.Troop, name: '虎豹騎' }, { type: TacticType.Troop, name: '大戟士' }, { type: TacticType.Troop, name: '藤甲兵' }, { type: TacticType.Troop, name: '白馬義從' }, { type: TacticType.Troop, name: '先登士死' }, { type: TacticType.Troop, name: '陷陣營' }, { type: TacticType.Troop, name: '西涼鐵騎' }, { type: TacticType.Troop, name: '解煩衛' }, { type: TacticType.Troop, name: '錦帆軍' }, { type: TacticType.Troop, name: '飛熊軍' }, { type: TacticType.Troop, name: '象兵' }, { type: TacticType.Troop, name: '青州兵' }, { type: TacticType.Troop, name: '虎衛軍' }, { type: TacticType.Troop, name: '白毦兵' }, { type: TacticType.Troop, name: '無當飛軍' }, { type: TacticType.Troop, name: '丹陽兵' },
+        { type: TacticType.Active, name: '偽書相間' }, { type: TacticType.Active, name: '挾勢弄權' }, { type: TacticType.Active, name: '奪魂挾魄' }, { type: TacticType.Active, name: '草船借箭' }, { type: TacticType.Active, name: '刮骨療傷' }, { type: TacticType.Active, name: '嬰城自守' }, { type: TacticType.Active, name: '坐守孤城' }, { type: TacticType.Active, name: '杯蛇鬼車' }, { type: TacticType.Active, name: '竭力佐謀' }, { type: TacticType.Active, name: '因利制權' }, { type: TacticType.Active, name: '誘敵深入' }, { type: TacticType.Active, name: '威謀靡亢' }, { type: TacticType.Active, name: '挫志怒襲' }, { type: TacticType.Active, name: '乘敵不虞' }, { type: TacticType.Active, name: '傾國傾城' }, { type: TacticType.Active, name: '益其金鼓' }, { type: TacticType.Active, name: '定謀貴決' }, { type: TacticType.Active, name: '結盟' }, { type: TacticType.Active, name: '臨機制勝' }, { type: TacticType.Active, name: '熯天熾熱' }, { type: TacticType.Active, name: '火熾原燎' }, { type: TacticType.Active, name: '風助火勢' }, { type: TacticType.Active, name: '智計' }, { type: TacticType.Active, name: '兵鋒' }, { type: TacticType.Active, name: '上兵伐謀' }, { type: TacticType.Active, name: '破軍威勝' }, { type: TacticType.Active, name: '掣刀斫敵' }, { type: TacticType.Active, name: '臥薪嘗膽' }, { type: TacticType.Active, name: '縱兵劫掠' }, { type: TacticType.Active, name: '橫掃千軍' }, { type: TacticType.Active, name: '焚輜營壘' }, { type: TacticType.Active, name: '萬軍奪帥' }, { type: TacticType.Active, name: '靈機一動' }, { type: TacticType.Active, name: '謬力同心' }, { type: TacticType.Active, name: '強攻' }, { type: TacticType.Active, name: '淨化' }, { type: TacticType.Active, name: '驅散' }, { type: TacticType.Active, name: '魯莽' }, { type: TacticType.Active, name: '運籌決算' }, { type: TacticType.Active, name: '屠几上肉' }, { type: TacticType.Active, name: '焰逐風飛' }, { type: TacticType.Active, name: '形機軍略' }, { type: TacticType.Active, name: '落鳳' }, { type: TacticType.Active, name: '避實擊虛' }, { type: TacticType.Active, name: '輕勇飛燕' }, { type: TacticType.Active, name: '擊其惰歸' }, { type: TacticType.Active, name: '決水潰城' }, { type: TacticType.Active, name: '絕其汲道' }, { type: TacticType.Active, name: '據水斷橋' }, { type: TacticType.Active, name: '機略縱橫' }, { type: TacticType.Active, name: '見機行事' }, { type: TacticType.Active, name: '聲東擊西' }, { type: TacticType.Active, name: '矢志不移' }, { type: TacticType.Active, name: '黃天泰平' }, { type: TacticType.Active, name: '瞋目橫矛' }, { type: TacticType.Active, name: '料事如神' }, { type: TacticType.Active, name: '落雷' }, { type: TacticType.Active, name: '驍勇善戰' }, { type: TacticType.Active, name: '一力拒守' }, { type: TacticType.Active, name: '守而必固' }, { type: TacticType.Active, name: '唇槍舌戰' }, { type: TacticType.Active, name: '舌戰群儒' }, { type: TacticType.Active, name: '獨行赴斗' }, { type: TacticType.Active, name: '四面楚歌' }, { type: TacticType.Active, name: '沉沙決水' }, { type: TacticType.Active, name: '風聲鶴唳' }, { type: TacticType.Active, name: '萬箭齊發' }, { type: TacticType.Active, name: '所向批靡' }, { type: TacticType.Active, name: '破陣摧堅' }
+      ];
+
+      const FACTION_COLORS = { [Faction.Wei]: 'bg-wei text-white ring-wei', [Faction.Shu]: 'bg-shu text-white ring-shu', [Faction.Wu]: 'bg-wu text-white ring-wu', [Faction.Qun]: 'bg-qun text-white ring-qun' };
+      const TACTIC_COLORS = { [TacticType.Command]: 'bg-t_command text-white ring-t_command', [TacticType.Passive]: 'bg-t_passive text-white ring-t_passive', [TacticType.Formation]: 'bg-t_formation text-white ring-t_formation', [TacticType.Assault]: 'bg-t_assault text-white ring-t_assault', [TacticType.Troop]: 'bg-t_troop text-white ring-t_troop', [TacticType.Active]: 'bg-t_active text-white ring-t_active' };
+
+      // --- 小圖標組件 ---
       const IconBase = ({ size = 24, className = "", children, ...props }) => (
-        <svg 
-          xmlns="http://www.w3.org/2000/svg" 
-          width={size} 
-          height={size} 
-          viewBox="0 0 24 24" 
-          fill="none" 
-          stroke="currentColor" 
-          strokeWidth="2" 
-          strokeLinecap="round" 
-          strokeLinejoin="round" 
-          className={className} 
-          {...props}
-        >
+        <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} {...props}>
           {children}
         </svg>
       );
-
       const Plus = (props) => <IconBase {...props}><path d="M5 12h14"/><path d="M12 5v14"/></IconBase>;
       const Star = (props) => <IconBase {...props}><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></IconBase>;
       const X = (props) => <IconBase {...props}><path d="M18 6 6 18"/><path d="m6 6 12 12"/></IconBase>;
@@ -105,497 +113,80 @@
       const Share2 = (props) => <IconBase {...props}><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" x2="15.42" y1="13.51" y2="17.49"/><line x1="15.41" x2="8.59" y1="6.51" y2="10.49"/></IconBase>;
       const RotateCcw = (props) => <IconBase {...props}><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></IconBase>;
 
-      // --- Types & Constants ---
-      const Faction = {
-        Wei: '魏',
-        Shu: '蜀',
-        Wu: '吳',
-        Qun: '群'
+      // --- 輔助函數 ---
+      const extractCost = (name) => {
+        if (!name) return 0;
+        const match = name.match(/\d+$/);
+        return match ? parseInt(match[0], 10) : 0;
       };
 
-      const TacticType = {
-        Command: '指揮戰法',
-        Passive: '被動戰法',
-        Formation: '陣法',
-        Assault: '突擊戰法',
-        Troop: '兵種',
-        Active: '主動戰法'
-      };
-
-      const GENERALS_DATA = [
-        // 蜀 (Shu)
-        { faction: Faction.Shu, name: '劉備' },
-        { faction: Faction.Shu, name: '龐統' },
-        { faction: Faction.Shu, name: '諸葛亮' },
-        { faction: Faction.Shu, name: 'SP諸葛亮' },
-        { faction: Faction.Shu, name: '關羽' },
-        { faction: Faction.Shu, name: 'SP關羽' },
-        { faction: Faction.Shu, name: 'SP黃月英' },
-        { faction: Faction.Shu, name: '黃忠' },
-        { faction: Faction.Shu, name: 'SP黃忠' },
-        { faction: Faction.Shu, name: '趙雲' },
-        { faction: Faction.Shu, name: '張飛' },
-        { faction: Faction.Shu, name: '姜維' },
-        { faction: Faction.Shu, name: '關銀屏' },
-        { faction: Faction.Shu, name: '魏延' },
-        { faction: Faction.Shu, name: '張苞' },
-        { faction: Faction.Shu, name: '關興' },
-        { faction: Faction.Shu, name: 'SP法正' },
-        { faction: Faction.Shu, name: '法正' },
-        { faction: Faction.Shu, name: '王平' },
-        { faction: Faction.Shu, name: '徐庶' },
-        { faction: Faction.Shu, name: '黃月英' },
-        { faction: Faction.Shu, name: '馬超' },
-        { faction: Faction.Shu, name: 'SP關平' },
-        { faction: Faction.Shu, name: '馬雲祿' },
-        { faction: Faction.Shu, name: '陳到' },
-        { faction: Faction.Shu, name: '嚴顏' },
-        { faction: Faction.Shu, name: '伊籍' },
-       
-        // 群 (Qun)
-        { faction: Faction.Qun, name: 'SP馬超' },
-        { faction: Faction.Qun, name: 'SP皇甫嵩' },
-        { faction: Faction.Qun, name: 'SP袁紹' },
-        { faction: Faction.Qun, name: 'SP朱儁' },
-        { faction: Faction.Qun, name: 'SP朱儁' },
-        { faction: Faction.Qun, name: '貂蟬' },
-        { faction: Faction.Qun, name: 'SP貂蟬' },
-        { faction: Faction.Qun, name: '許攸' },
-        { faction: Faction.Qun, name: '呂布' },
-        { faction: Faction.Qun, name: '袁術' },
-        { faction: Faction.Qun, name: '公孫瓚' },
-        { faction: Faction.Qun, name: '張角' },
-        { faction: Faction.Qun, name: '于吉' },
-        { faction: Faction.Qun, name: '華佗' },
-        { faction: Faction.Qun, name: '左慈' },
-        { faction: Faction.Qun, name: '董卓' },
-        { faction: Faction.Qun, name: 'SP董卓' },
-        { faction: Faction.Qun, name: '孟獲' },
-        { faction: Faction.Qun, name: '呂玲綺' },
-        { faction: Faction.Qun, name: '祝融夫人' },
-        { faction: Faction.Qun, name: '兀突骨' },
-        { faction: Faction.Qun, name: '袁紹' },
-        { faction: Faction.Qun, name: '麴義' },
-        { faction: Faction.Qun, name: '朵思大王' },
-        { faction: Faction.Qun, name: '木鹿大王' },
-        { faction: Faction.Qun, name: '張讓' },
-        { faction: Faction.Qun, name: '李儒' },
-        { faction: Faction.Qun, name: '高順' },
-        { faction: Faction.Qun, name: '馬騰' },
-        { faction: Faction.Qun, name: '文醜' },
-        { faction: Faction.Qun, name: '華雄' },
-        { faction: Faction.Qun, name: '顏良' },
-        { faction: Faction.Qun, name: '高覽' },
-        { faction: Faction.Qun, name: '陳宮' },
-        { faction: Faction.Qun, name: '司馬徽' },
-        { faction: Faction.Qun, name: '蔡文姬' },
-        { faction: Faction.Qun, name: '董白' },
-        { faction: Faction.Qun, name: 'SP張寶' },
-        { faction: Faction.Qun, name: 'SP張梁' },
-        { faction: Faction.Qun, name: '田豐' },
-        { faction: Faction.Qun, name: '兲丨Q' },
-        { faction: Faction.Qun, name: '雞枝風' },
-        { faction: Faction.Qun, name: '大麥克' },
-        { faction: Faction.Wu, name: '鄒氏' },
-
-        // 吳 (Wu)
-        { faction: Faction.Wu, name: '孫尚香' },
-        { faction: Faction.Wu, name: '周泰' },
-        { faction: Faction.Wu, name: '凌統' },
-        { faction: Faction.Wu, name: '陸遜' },
-        { faction: Faction.Wu, name: '魯肅' },
-        { faction: Faction.Wu, name: '周瑜' },
-        { faction: Faction.Wu, name: 'SP周瑜' },
-        { faction: Faction.Wu, name: '孫權' },
-        { faction: Faction.Wu, name: 'CO大喬' },
-        { faction: Faction.Wu, name: 'CO小喬' },
-        { faction: Faction.Wu, name: '呂蒙' },
-        { faction: Faction.Wu, name: 'SP呂蒙' },
-        { faction: Faction.Wu, name: '太史慈' },
-        { faction: Faction.Wu, name: '孫堅' },
-        { faction: Faction.Wu, name: 'SP孫堅' },
-        { faction: Faction.Wu, name: '甘寧' },
-        { faction: Faction.Wu, name: '程普' },
-        { faction: Faction.Wu, name: '陸抗' },
-        { faction: Faction.Wu, name: '黃蓋' },
-        { faction: Faction.Wu, name: '諸葛格' },
-        { faction: Faction.Wu, name: '孫策' },
-             
-         
-        // 魏 (Wei)
-        { faction: Faction.Wei, name: '司馬懿' },
-        { faction: Faction.Wei, name: '曹操' },
-        { faction: Faction.Wei, name: '滿寵' },
-
-
-        { faction: Faction.Wei, name: '典韋' },
-        { faction: Faction.Wei, name: 'SP典韋' },
-        { faction: Faction.Wei, name: '賈詡' },
-        { faction: Faction.Wei, name: 'SP荀彧' },
-        { faction: Faction.Wei, name: 'SP郭嘉' },
-        { faction: Faction.Wei, name: '荀攸' },
-        { faction: Faction.Wei, name: '張遼' },
-        { faction: Faction.Wei, name: '王元姬' },
-        { faction: Faction.Wei, name: '郭嘉' },
-        { faction: Faction.Wei, name: '龐德' },
-        { faction: Faction.Wei, name: 'SP龐德' },
-        { faction: Faction.Wei, name: 'CO曹丕' },
-        { faction: Faction.Wei, name: '郝昭' },
-        { faction: Faction.Wei, name: '曹仁' },
-        { faction: Faction.Wei, name: 'CO甄姬' },
-        { faction: Faction.Wei, name: '程昱' },
-        { faction: Faction.Wei, name: '許褚' },
-        { faction: Faction.Wei, name: '張郃' },
-        { faction: Faction.Wei, name: '徐晃' },
-        { faction: Faction.Wei, name: '夏侯惇' },
-        { faction: Faction.Wei, name: '鍾會' },
-        { faction: Faction.Wei, name: '王雙' },
-        { faction: Faction.Wei, name: '曹純' },
-        { faction: Faction.Wei, name: '于禁' },
-        { faction: Faction.Wei, name: '樂進' },
-        { faction: Faction.Wei, name: '鄧艾' },
-        { faction: Faction.Wei, name: '夏侯淵' },
-        { faction: Faction.Wei, name: '張春華' },
-        { faction: Faction.Wei, name: 'SP劉曄' },
-        { faction: Faction.Wei, name: 'SP曹真' },
-      ];
-
-      const TACTICS_DATA = [
-        // 類別1: 指揮戰法
-        { type: TacticType.Command, name: '暫避其鋒' },
-        { type: TacticType.Command, name: '盛氣淩敵' },
-        { type: TacticType.Command, name: '用武神通' },
-        { type: TacticType.Command, name: '夢中弒臣' },
-        { type: TacticType.Command, name: '挫銳' },
-        { type: TacticType.Command, name: '非攻制勝' },
-        { type: TacticType.Command, name: '鐵騎驅馳' },
-        { type: TacticType.Command, name: '撫輯軍民' },
-        { type: TacticType.Command, name: '禦敵屏障' },
-        { type: TacticType.Command, name: '長者之風' },
-        { type: TacticType.Command, name: '鋒芒畢露' },
-        { type: TacticType.Command, name: '整裝待發' },
-        { type: TacticType.Command, name: '義心昭烈' },
-        { type: TacticType.Command, name: '奇計良謀' },
-        { type: TacticType.Command, name: '橫戈躍馬' },
-        { type: TacticType.Command, name: '整軍經武' },
-        { type: TacticType.Command, name: '剛柔並濟' },
-        { type: TacticType.Command, name: '眾志成城' },
-        { type: TacticType.Command, name: '知己知彼' },
-
-        // 類別2: 被動戰法
-        { type: TacticType.Passive, name: '功不唐捐' },
-        { type: TacticType.Passive, name: '整軍經武' },
-        { type: TacticType.Passive, name: '千里走單騎' },
-        { type: TacticType.Passive, name: '魅惑' },
-        { type: TacticType.Passive, name: '合軍聚眾' },
-        { type: TacticType.Passive, name: '忠勇益烈' },
-        { type: TacticType.Passive, name: '文武雙全' },
-        { type: TacticType.Passive, name: '以寡擊眾' },
-        { type: TacticType.Passive, name: '絕地反擊' },
-        { type: TacticType.Passive, name: '士爭先赴' },
-        { type: TacticType.Passive, name: '裸衣血戰' },
-        { type: TacticType.Passive, name: '血刃爭鋒' },
-        { type: TacticType.Passive, name: '眾動萬計' },
-        { type: TacticType.Passive, name: '太平道法' },
-        { type: TacticType.Passive, name: '自癒' },
-        { type: TacticType.Passive, name: '後發制人' },
-        { type: TacticType.Passive, name: '氣凌三軍' },
-        { type: TacticType.Passive, name: '虎踞鷹揚' },
-        { type: TacticType.Passive, name: '引弦力戰' },
-        { type: TacticType.Passive, name: '剛勇無前' },
-        { type: TacticType.Passive, name: '騎虎難下' },
-        { type: TacticType.Passive, name: '白眉' },
-        { type: TacticType.Passive, name: '兵無常勢' },
-        { type: TacticType.Passive, name: '士別三日' },
-        { type: TacticType.Passive, name: '乘勝長驅' },
-        
-
-        // 類別3: 陣法
-        { type: TacticType.Formation, name: '潛龍陣' },
-        { type: TacticType.Formation, name: '鋒矢陣' },
-        { type: TacticType.Formation, name: '八門金鎖陣' },
-        { type: TacticType.Formation, name: '箕形陣' },
-        { type: TacticType.Formation, name: '三勢陣' },
-        { type: TacticType.Formation, name: '行一陣' },
-        { type: TacticType.Formation, name: '武鋒陣' },
-        { type: TacticType.Formation, name: '長蛇陣' },
-        { type: TacticType.Formation, name: '魚鱗陣' },
-
-        // 類別4: 突擊戰法
-        { type: TacticType.Assault, name: '折衝禦侮' },
-        { type: TacticType.Assault, name: '暴戾無仁' },
-        { type: TacticType.Assault, name: '一騎當千' },
-        { type: TacticType.Assault, name: '百騎劫營' },
-        { type: TacticType.Assault, name: '當鋒摧決' },
-        { type: TacticType.Assault, name: '速乘其利' },
-        { type: TacticType.Assault, name: '彎弓飲羽' },
-        { type: TacticType.Assault, name: '鬼神霆威' },
-        { type: TacticType.Assault, name: '破甲' },
-        { type: TacticType.Assault, name: '克敵制勝' },
-        { type: TacticType.Assault, name: '先成其慮' },
-        { type: TacticType.Assault, name: '勇者得前' },
-        { type: TacticType.Assault, name: '左右開弓' },
-        { type: TacticType.Assault, name: '手起刀落' },
-
-        // 類別5: 兵種
-        { type: TacticType.Troop, name: '虎豹騎' },
-        { type: TacticType.Troop, name: '大戟士' },
-        { type: TacticType.Troop, name: '藤甲兵' },
-        { type: TacticType.Troop, name: '白馬義從' },
-        { type: TacticType.Troop, name: '先登士死' },
-        { type: TacticType.Troop, name: '陷陣營' },
-        { type: TacticType.Troop, name: '西涼鐵騎' },
-        { type: TacticType.Troop, name: '解煩衛' },
-        { type: TacticType.Troop, name: '錦帆軍' },
-        { type: TacticType.Troop, name: '飛熊軍' },
-        { type: TacticType.Troop, name: '象兵' },
-        { type: TacticType.Troop, name: '青州兵' },
-        { type: TacticType.Troop, name: '虎衛軍' },
-        { type: TacticType.Troop, name: '白毦兵' },
-        { type: TacticType.Troop, name: '無當飛軍' },
-        { type: TacticType.Troop, name: '丹陽兵' },
-
-        // 類別6: 主動戰法
-        { type: TacticType.Active, name: '偽書相間' },
-        { type: TacticType.Active, name: '挾勢弄權' },
-        { type: TacticType.Active, name: '奪魂挾魄' },
-        { type: TacticType.Active, name: '草船借箭' },
-        { type: TacticType.Active, name: '刮骨療傷' },
-        { type: TacticType.Active, name: '嬰城自守' },
-        { type: TacticType.Active, name: '坐守孤城' },
-        { type: TacticType.Active, name: '杯蛇鬼車' },
-        { type: TacticType.Active, name: '竭力佐謀' },
-        { type: TacticType.Active, name: '因利制權' },
-        { type: TacticType.Active, name: '誘敵深入' },
-        { type: TacticType.Active, name: '威謀靡亢' },
-        { type: TacticType.Active, name: '挫志怒襲' },
-        { type: TacticType.Active, name: '乘敵不虞' },
-        { type: TacticType.Active, name: '傾國傾城' },
-        { type: TacticType.Active, name: '益其金鼓' },
-        { type: TacticType.Active, name: '定謀貴決' },
-        { type: TacticType.Active, name: '結盟' },
-        { type: TacticType.Active, name: '臨機制勝' },
-        { type: TacticType.Active, name: '熯天熾熱' },
-        { type: TacticType.Active, name: '火熾原燎' },
-        { type: TacticType.Active, name: '風助火勢' },
-        { type: TacticType.Active, name: '智計' },
-        { type: TacticType.Active, name: '兵鋒' },
-        { type: TacticType.Active, name: '上兵伐謀' },
-        { type: TacticType.Active, name: '破軍威勝' },
-        { type: TacticType.Active, name: '掣刀斫敵' },
-        { type: TacticType.Active, name: '臥薪嘗膽' },
-        { type: TacticType.Active, name: '縱兵劫掠' },
-        { type: TacticType.Active, name: '橫掃千軍' },
-        { type: TacticType.Active, name: '焚輜營壘' },
-        { type: TacticType.Active, name: '萬軍奪帥' },
-        { type: TacticType.Active, name: '靈機一動' },
-        { type: TacticType.Active, name: '謬力同心' },
-        { type: TacticType.Active, name: '強攻' },
-        { type: TacticType.Active, name: '淨化' },
-        { type: TacticType.Active, name: '驅散' },
-        { type: TacticType.Active, name: '魯莽' },
-        { type: TacticType.Active, name: '運籌決算' },
-        { type: TacticType.Active, name: '屠几上肉' },
-        { type: TacticType.Active, name: '焰逐風飛' },
-        { type: TacticType.Active, name: '兵鋒' },
-        { type: TacticType.Active, name: '形機軍略' },
-        { type: TacticType.Active, name: '落鳳' },
-        { type: TacticType.Active, name: '避實擊虛' },
-        { type: TacticType.Active, name: '輕勇飛燕' },
-        { type: TacticType.Active, name: '擊其惰歸' },
-        { type: TacticType.Active, name: '決水潰城' },
-        { type: TacticType.Active, name: '絕其汲道' },
-        { type: TacticType.Active, name: '據水斷橋' },
-        { type: TacticType.Active, name: '機略縱橫' },
-        { type: TacticType.Active, name: '見機行事' },
-        { type: TacticType.Active, name: '聲東擊西' },
-        { type: TacticType.Active, name: '矢志不移' },
-        { type: TacticType.Active, name: '黃天泰平' },
-        { type: TacticType.Active, name: '瞋目橫矛' },
-        { type: TacticType.Active, name: '料事如神' },
-        { type: TacticType.Active, name: '落雷' },
-        { type: TacticType.Active, name: '驍勇善戰' },
-        { type: TacticType.Active, name: '一力拒守' },
-        { type: TacticType.Active, name: '守而必固' },
-        { type: TacticType.Active, name: '唇槍舌戰' },
-        { type: TacticType.Active, name: '舌戰群儒' },
-        { type: TacticType.Active, name: '獨行赴斗' },
-        { type: TacticType.Active, name: '四面楚歌' },
-        { type: TacticType.Active, name: '沉沙決水' },
-        { type: TacticType.Active, name: '風聲鶴唳' },
-        { type: TacticType.Active, name: '萬箭齊發' },
-        { type: TacticType.Active, name: '所向批靡' },
-        { type: TacticType.Active, name: '破陣摧堅' },
-      ];
-
-      const FACTION_COLORS = {
-        [Faction.Wei]: 'bg-wei text-white ring-wei',
-        [Faction.Shu]: 'bg-shu text-white ring-shu',
-        [Faction.Wu]: 'bg-wu text-white ring-wu',
-        [Faction.Qun]: 'bg-qun text-white ring-qun',
-      };
-
-      const TACTIC_COLORS = {
-        [TacticType.Command]: 'bg-t_command text-white ring-t_command',
-        [TacticType.Passive]: 'bg-t_passive text-white ring-t_passive',
-        [TacticType.Formation]: 'bg-t_formation text-white ring-t_formation',
-        [TacticType.Assault]: 'bg-t_assault text-white ring-t_assault',
-        [TacticType.Troop]: 'bg-t_troop text-white ring-t_troop',
-        [TacticType.Active]: 'bg-t_active text-white ring-t_active',
-      };
-
-      // --- Components ---
-
+      // --- 選擇彈窗組件 ---
       const SelectionModal = ({ isOpen, type, currentValue, onClose, onSelect }) => {
         const [activeTab, setActiveTab] = useState('All');
         const [searchTerm, setSearchTerm] = useState('');
 
-        useEffect(() => {
-          if (isOpen) {
-            document.body.style.overflow = 'hidden';
-          } else {
-            document.body.style.overflow = 'auto';
-          }
-          return () => {
-            document.body.style.overflow = 'auto';
-          };
-        }, [isOpen]);
-
-        const tabs = useMemo(() => {
-          if (type === 'general') {
-            return ['All', ...Object.values(Faction)];
-          } else {
-            return ['All', ...Object.values(TacticType)];
-          }
-        }, [type]);
-
+        const tabs = useMemo(() => type === 'general' ? ['All', ...Object.values(Faction)] : ['All', ...Object.values(TacticType)], [type]);
         const filteredItems = useMemo(() => {
           let items = type === 'general' 
             ? GENERALS_DATA.map(g => ({ name: g.name, category: g.faction, color: FACTION_COLORS[g.faction] }))
             : TACTICS_DATA.map(t => ({ name: t.name, category: t.type, color: TACTIC_COLORS[t.type] }));
-
-          if (activeTab !== 'All') {
-            items = items.filter(i => i.category === activeTab);
-          }
-
-          if (searchTerm) {
-            items = items.filter(i => i.name.includes(searchTerm));
-          }
-
+          if (activeTab !== 'All') items = items.filter(i => i.category === activeTab);
+          if (searchTerm) items = items.filter(i => i.name.toLowerCase().includes(searchTerm.toLowerCase()));
           return items;
         }, [type, activeTab, searchTerm]);
 
         if (!isOpen) return null;
 
         return (
-          <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
-            <div 
-              className="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity" 
-              onClick={onClose}
-            />
-
-            <div className="relative w-full max-w-2xl bg-white sm:rounded-2xl rounded-t-2xl shadow-2xl flex flex-col max-h-[90vh] sm:max-h-[85vh] animate-slide-up">
-              
-              <div className="px-4 py-3 border-b flex items-center justify-between shrink-0 bg-white/80 backdrop-blur-md rounded-t-2xl z-10">
-                <h3 className="text-lg font-bold text-gray-800">
-                  {type === 'general' ? '選擇武將' : '選擇戰法'}
-                </h3>
-                <button onClick={onClose} className="p-2 bg-gray-100 rounded-full hover:bg-gray-200 transition-colors">
-                  <X size={20} className="text-gray-600" />
-                </button>
+          <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
+            <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
+            <div className="relative w-full max-w-2xl bg-white sm:rounded-2xl rounded-t-2xl shadow-2xl flex flex-col max-h-[90vh] animate-slide-up overflow-hidden">
+              <div className="px-4 py-3 border-b flex items-center justify-between shrink-0 bg-white">
+                <h3 className="text-lg font-bold">選擇{type === 'general' ? '武將' : '戰法'}</h3>
+                <button onClick={onClose} className="p-2 bg-gray-100 rounded-full hover:bg-gray-200 transition-colors"><X size={20}/></button>
               </div>
-
-              <div className="p-4 space-y-4 shrink-0 bg-gray-50 border-b">
+              <div className="p-4 bg-gray-50 border-b space-y-3">
                 <div className="relative">
-                  <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
-                    <Search size={18} />
-                  </div>
-                  <input 
-                    type="text" 
-                    placeholder={type === 'general' ? "搜尋武將..." : "搜尋戰法..."}
-                    className="w-full pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    autoFocus
-                  />
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                  <input type="text" placeholder="搜尋..." className="w-full pl-10 pr-4 py-2 border rounded-xl focus:ring-2 focus:ring-blue-500 outline-none" value={searchTerm} onChange={e => setSearchTerm(e.target.value)} autoFocus />
                 </div>
-
-                <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar -mx-2 px-2">
+                <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
                   {tabs.map(tab => (
-                    <button
-                      key={tab}
-                      onClick={() => setActiveTab(tab)}
-                      className={`
-                        whitespace-nowrap px-3 py-1.5 rounded-full text-xs font-medium transition-all
-                        ${activeTab === tab 
-                          ? 'bg-gray-900 text-white shadow-md' 
-                          : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-100'}
-                      `}
-                    >
+                    <button key={tab} onClick={() => setActiveTab(tab)} className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all whitespace-nowrap ${activeTab === tab ? 'bg-gray-900 text-white shadow-sm' : 'bg-white border text-gray-600'}`}>
                       {tab === 'All' ? '全部' : tab}
                     </button>
                   ))}
                 </div>
               </div>
-
-              <div className="flex-1 overflow-y-auto p-4 bg-gray-50/50">
-                 {currentValue && (
-                  <div className="mb-6">
-                    <div className="text-xs text-gray-400 font-semibold mb-2 uppercase tracking-wide">當前選擇</div>
-                    <div className="flex gap-3">
-                       <button 
-                        onClick={() => onSelect(null)}
-                        className="flex items-center gap-2 px-4 py-3 bg-red-50 text-red-600 rounded-xl font-medium border border-red-100 hover:bg-red-100 transition-colors w-full justify-center"
-                      >
-                        <Trash2 size={18} />
-                        移除
-                      </button>
-                    </div>
-                  </div>
+              <div className="flex-1 overflow-y-auto p-4 grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3 bg-gray-100/30">
+                {currentValue && (
+                  <button onClick={() => onSelect(null)} className="col-span-full py-3 bg-red-50 text-red-600 rounded-xl font-bold border border-red-100 flex items-center justify-center gap-2 mb-2 active:scale-95 transition-all">
+                    <Trash2 size={18}/> 移除當前選擇
+                  </button>
                 )}
-
-                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
-                  {filteredItems.map((item, idx) => (
-                    <button
-                      key={`${item.name}-${idx}`}
-                      onClick={() => onSelect(item.name)}
-                      className={`
-                        flex flex-col items-center justify-center p-2 rounded-xl transition-all shadow-sm border border-gray-100
-                        ${item.name === currentValue ? 'ring-2 ring-black bg-white scale-95' : 'bg-white hover:shadow-md hover:-translate-y-0.5'}
-                      `}
-                    >
-                      <div className={`
-                        w-full aspect-[2/1] sm:aspect-square mb-2 rounded-lg flex items-center justify-center text-white font-bold text-sm sm:text-lg
-                        ${item.color}
-                      `}>
-                        {item.name.substring(0, 1)}
-                      </div>
-                      <span className="text-xs sm:text-sm font-medium text-gray-700 text-center truncate w-full">
-                        {item.name}
-                      </span>
-                      <span className="text-[10px] text-gray-400 mt-0.5 truncate w-full text-center">
-                        {item.category}
-                      </span>
-                    </button>
-                  ))}
-                  
-                  {filteredItems.length === 0 && (
-                    <div className="col-span-full py-10 text-center text-gray-400 text-sm">
-                      沒有找到相關選項
+                {filteredItems.map((item, idx) => (
+                  <button key={idx} onClick={() => onSelect(item.name)} className={`flex flex-col items-center p-2 bg-white rounded-xl shadow-sm border transition-all active:scale-95 hover:border-blue-300 ${item.name === currentValue ? 'ring-2 ring-blue-500' : ''}`}>
+                    <div className={`w-full aspect-square mb-2 rounded-lg flex items-center justify-center text-white font-black text-xs text-center leading-tight shadow-inner ${item.color} p-1`}>
+                      {item.name.split(' ')[0]}
                     </div>
-                  )}
-                </div>
+                    <span className="text-[10px] font-bold truncate w-full text-center text-gray-800">{item.name}</span>
+                  </button>
+                ))}
               </div>
             </div>
           </div>
         );
       };
 
-      const TeamCard = ({ index, title, team, generalCounts, tacticCounts, onSlotClick, onGeneralUpdate }) => {
-        
+      // --- 隊伍卡片組件 ---
+      const TeamCard = ({ index, title, team, onSlotClick, onGeneralUpdate }) => {
+        const totalCost = team.generals.reduce((sum, g) => sum + extractCost(g.name), 0);
+        const totalRedness = team.generals.reduce((sum, g) => sum + g.redness, 0);
+
         const getGeneralColor = (name) => {
           if (!name) return 'bg-gray-100 text-gray-400 border-dashed border-2 border-gray-300';
-          const gen = GENERALS_DATA.find(g => g.name === name);
+          const cleanName = name.split(' ')[0];
+          const gen = GENERALS_DATA.find(g => g.name.startsWith(cleanName));
           return gen ? FACTION_COLORS[gen.faction] : 'bg-gray-500 text-white';
         };
 
@@ -605,358 +196,128 @@
           return tac ? TACTIC_COLORS[tac.type] : 'bg-gray-500 text-white';
         };
 
-        const isDuplicate = (name, type) => {
-          if (!name) return false;
-          const count = type === 'general' ? generalCounts[name] : tacticCounts[name];
-          return count > 1;
-        };
-
-        const GeneralSlotRender = ({ slot, colIndex }) => {
-          const duplicate = isDuplicate(slot.name, 'general');
-          const colorClass = getGeneralColor(slot.name);
-
-          return (
-            <div className="flex flex-col gap-1.5">
-              <button 
-                onClick={() => onSlotClick(index, 'general', 'generals', colIndex, slot.name)}
-                className={`
-                  relative w-full flex items-center justify-center rounded-xl transition-all duration-200 shadow-sm
-                  h-14 font-bold text-lg
-                  ${colorClass}
-                  ${duplicate ? 'ring-2 ring-red-500 ring-offset-1' : ''}
-                  hover:opacity-90 active:scale-95
-                `}
-              >
-                {slot.name ? (
-                  <span className={`truncate px-2 ${duplicate ? 'text-yellow-200 font-extrabold animate-pulse' : ''}`}>
-                    {slot.name}
-                  </span>
-                ) : (
-                  <Plus size={20} />
-                )}
-                
-                {duplicate && slot.name && (
-                  <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border border-white" />
-                )}
-              </button>
-
-              {slot.name ? (
-                <div className="flex items-center justify-between px-1 h-6">
-                  <button 
-                    onClick={() => onGeneralUpdate(index, colIndex, { isCollection: !slot.isCollection })}
-                    className={`
-                      flex items-center justify-center w-6 h-6 rounded border transition-colors text-[10px] font-bold
-                      ${slot.isCollection 
-                        ? 'bg-yellow-600 text-white border-yellow-700 shadow-sm' 
-                        : 'bg-white text-gray-300 border-gray-200 hover:border-gray-300'}
-                    `}
-                    title="典藏"
-                  >
-                    典
-                  </button>
-
-                  <div className="flex gap-0.5">
-                    {[1, 2, 3, 4, 5].map(star => (
-                      <button
-                        key={star}
-                        onClick={() => onGeneralUpdate(index, colIndex, { redness: slot.redness === star ? 0 : star })}
-                        className="focus:outline-none hover:scale-125 transition-transform p-0.5"
-                      >
-                        <Star 
-                          size={10} 
-                          className={`
-                            ${star <= slot.redness ? 'fill-red-500 text-red-500' : 'fill-gray-100 text-gray-200'}
-                          `}
-                        />
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              ) : (
-                <div className="h-6" />
-              )}
-            </div>
-          );
-        };
-
-        const TacticSlot = ({ value, onClick, colorClass }) => {
-          const duplicate = isDuplicate(value, 'tactic');
-          
-          return (
-            <button 
-              onClick={onClick}
-              className={`
-                relative w-full flex items-center justify-center rounded-xl transition-all duration-200 shadow-sm
-                h-10 text-sm font-medium
-                ${colorClass}
-                ${duplicate ? 'ring-2 ring-red-500 ring-offset-1' : ''}
-                hover:opacity-90 active:scale-95
-              `}
-            >
-              {value ? (
-                <span className={`truncate px-2 ${duplicate ? 'text-yellow-200 font-extrabold animate-pulse' : ''}`}>
-                  {value}
-                </span>
-              ) : (
-                <Plus size={16} />
-              )}
-              
-              {duplicate && value && (
-                <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border border-white" />
-              )}
-            </button>
-          );
-        };
-
         return (
           <div className="ios-card rounded-2xl p-5 shadow-lg border border-white/50">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-gray-400 font-semibold text-xs uppercase tracking-wider">{title}</h2>
+              <div className="flex items-center gap-3">
+                <h2 className="text-gray-400 font-bold text-xs uppercase tracking-wider">{title}</h2>
+                <div className="bg-gray-900/10 px-2 py-0.5 rounded-full text-[11px] font-extrabold text-gray-700 flex gap-2">
+                  <span>Cost: <span className="text-blue-700">{totalCost}</span></span>
+                  <span className="opacity-30">|</span>
+                  <span>紅: <span className="text-red-700">{totalRedness}</span></span>
+                </div>
+              </div>
             </div>
-
             <div className="grid grid-cols-3 gap-3">
-              {team.generals.map((genSlot, colIndex) => (
-                <GeneralSlotRender 
-                  key={`g-${colIndex}`} 
-                  slot={genSlot} 
-                  colIndex={colIndex} 
-                />
-              ))}
-
-              {team.tacticsRow1.map((tac, colIndex) => (
-                <div key={`t1-${colIndex}`} className="flex flex-col gap-2">
-                  <TacticSlot 
-                    value={tac}
-                    colorClass={getTacticColor(tac)}
-                    onClick={() => onSlotClick(index, 'tactic', 'tacticsRow1', colIndex, tac)}
-                  />
+              {team.generals.map((slot, i) => (
+                <div key={i} className="flex flex-col gap-1.5">
+                  <button onClick={() => onSlotClick(index, 'general', 'generals', i, slot.name)} className={`relative w-full h-14 rounded-xl flex items-center justify-center font-bold text-lg shadow-md transition-all active:scale-95 ${getGeneralColor(slot.name)}`}>
+                    {slot.name ? (
+                      <>
+                        <div className="absolute top-1 left-1 bg-black/40 text-[9px] font-bold px-1 rounded shadow-sm text-white">C:{extractCost(slot.name)}</div>
+                        <span className="truncate px-1 drop-shadow-sm">{slot.name.split(' ')[0]}</span>
+                      </>
+                    ) : <Plus size={20} className="opacity-40" />}
+                  </button>
+                  {slot.name && (
+                    <div className="flex items-center justify-between px-1 h-5">
+                      <button onClick={() => onGeneralUpdate(index, i, { isCollection: !slot.isCollection })} className={`w-5 h-5 rounded border text-[9px] font-bold flex items-center justify-center transition-all ${slot.isCollection ? 'bg-yellow-600 text-white border-yellow-700 shadow-sm' : 'bg-white text-gray-300 border-gray-200'}`}>典</button>
+                      <div className="flex gap-0.5">
+                        {[1, 2, 3, 4, 5].map(s => (
+                          <Star key={s} size={10} className={`transition-all ${s <= slot.redness ? 'fill-red-500 text-red-500' : 'fill-gray-100 text-gray-200'} cursor-pointer active:scale-125`} onClick={() => onGeneralUpdate(index, i, { redness: slot.redness === s ? 0 : s })}/>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               ))}
-
-              {team.tacticsRow2.map((tac, colIndex) => (
-                <div key={`t2-${colIndex}`} className="flex flex-col gap-2">
-                  <TacticSlot 
-                    value={tac}
-                    colorClass={getTacticColor(tac)}
-                    onClick={() => onSlotClick(index, 'tactic', 'tacticsRow2', colIndex, tac)}
-                  />
-                </div>
+              {team.tacticsRow1.map((tac, i) => (
+                <button key={i} onClick={() => onSlotClick(index, 'tactic', 'tacticsRow1', i, tac)} className={`w-full h-10 rounded-xl flex items-center justify-center text-xs font-semibold shadow-sm transition-all active:scale-95 ${getTacticColor(tac)}`}>
+                  {tac ? <span className="truncate px-1">{tac}</span> : <Plus size={16} className="opacity-40" />}
+                </button>
+              ))}
+              {team.tacticsRow2.map((tac, i) => (
+                <button key={i} onClick={() => onSlotClick(index, 'tactic', 'tacticsRow2', i, tac)} className={`w-full h-10 rounded-xl flex items-center justify-center text-xs font-semibold shadow-sm transition-all active:scale-95 ${getTacticColor(tac)}`}>
+                  {tac ? <span className="truncate px-1">{tac}</span> : <Plus size={16} className="opacity-40" />}
+                </button>
               ))}
             </div>
           </div>
         );
       };
 
-      // --- Main App ---
-
-      const createEmptyGeneral = () => ({
-        name: null,
-        isCollection: false,
-        redness: 0
-      });
-
-      const INITIAL_TEAMS = Array.from({ length: 6 }, (_, i) => ({
-        id: i,
-        generals: [createEmptyGeneral(), createEmptyGeneral(), createEmptyGeneral()],
-        tacticsRow1: [null, null, null],
-        tacticsRow2: [null, null, null],
-      }));
-
+      // --- 主程式 ---
       const App = () => {
-        const [teams, setTeams] = useState(INITIAL_TEAMS);
-        
+        const createEmptyTeam = (id) => ({ id, generals: Array(3).fill(null).map(() => ({ name: null, isCollection: false, redness: 0 })), tacticsRow1: Array(3).fill(null), tacticsRow2: Array(3).fill(null) });
+        const [teams, setTeams] = useState(Array.from({ length: 6 }, (_, i) => createEmptyTeam(i)));
         const [isModalOpen, setIsModalOpen] = useState(false);
-        const [activeSelection, setActiveSelection] = useState(null);
+        const [active, setActive] = useState(null);
 
-        // Load state from URL Hash on mount
+        // 初始化載入 Hash
         useEffect(() => {
           const hash = window.location.hash;
-          if (hash && hash.length > 1) {
+          if (hash.length > 1) {
             try {
-              const json = decodeURIComponent(atob(hash.substring(1)));
-              const data = JSON.parse(json);
-              
-              const loadedTeams = data.map((t, index) => ({
-                id: index,
-                generals: t.g.map(g => g ? { 
-                  name: g[0], 
-                  isCollection: g[1] === 1, 
-                  redness: g[2] 
-                } : createEmptyGeneral()),
-                tacticsRow1: t.t.slice(0, 3).map(x => x || null),
-                tacticsRow2: t.t.slice(3, 6).map(x => x || null),
-              }));
-
-              if (loadedTeams.length === 6) {
-                 setTeams(loadedTeams);
-              }
-            } catch (e) {
-              console.error("Invalid URL state", e);
-            }
+              const data = JSON.parse(decodeURIComponent(atob(hash.substring(1))));
+              setTeams(data.map((t, idx) => ({ id: idx, generals: t.g.map(g => g ? { name: g[0], isCollection: g[1]===1, redness: g[2] } : {name:null, isCollection:false, redness:0}), tacticsRow1: t.t.slice(0,3), tacticsRow2: t.t.slice(3,6) })));
+            } catch (e) { console.error("Hash載入失敗", e); }
           }
         }, []);
 
-        const { generalCounts, tacticCounts } = useMemo(() => {
-          const gCounts = {};
-          const tCounts = {};
-
-          teams.forEach(team => {
-            team.generals.forEach(g => {
-              if (g.name) gCounts[g.name] = (gCounts[g.name] || 0) + 1;
-            });
-            [...team.tacticsRow1, ...team.tacticsRow2].forEach(t => {
-              if (t) tCounts[t] = (tCounts[t] || 0) + 1;
-            });
-          });
-
-          return { generalCounts: gCounts, tacticCounts: tCounts };
-        }, [teams]);
-
-        const handleSlotClick = useCallback((teamIndex, type, row, colIndex, currentValue) => {
-          setActiveSelection({
-            teamIndex,
-            type,
-            row,
-            colIndex,
-            currentValue
-          });
-          setIsModalOpen(true);
-        }, []);
-
-        const handleSelect = (value) => {
-          if (!activeSelection) return;
-          
+        const handleSlotClick = (tIdx, type, row, cIdx, val) => { setActive({ tIdx, type, row, cIdx, val }); setIsModalOpen(true); };
+        
+        const handleSelect = (val) => {
           setTeams(prev => {
-            const newTeams = [...prev];
-            const team = { ...newTeams[activeSelection.teamIndex] };
-            
-            if (activeSelection.row === 'generals') {
-              const newArr = [...team.generals];
-              const prevSlot = newArr[activeSelection.colIndex];
-              newArr[activeSelection.colIndex] = {
-                name: value,
-                isCollection: value === prevSlot.name ? prevSlot.isCollection : false,
-                redness: value === prevSlot.name ? prevSlot.redness : 0
-              };
-              team.generals = newArr;
-            } else if (activeSelection.row === 'tacticsRow1') {
-              const newArr = [...team.tacticsRow1];
-              newArr[activeSelection.colIndex] = value;
-              team.tacticsRow1 = newArr;
+            const next = [...prev];
+            const team = { ...next[active.tIdx] };
+            if (active.row === 'generals') {
+              team.generals = [...team.generals];
+              team.generals[active.cIdx] = { name: val, isCollection: false, redness: 0 };
             } else {
-              const newArr = [...team.tacticsRow2];
-              newArr[activeSelection.colIndex] = value;
-              team.tacticsRow2 = newArr;
+              team[active.row] = [...team[active.row]];
+              team[active.row][active.cIdx] = val;
             }
-            
-            newTeams[activeSelection.teamIndex] = team;
-            return newTeams;
+            next[active.tIdx] = team;
+            return next;
           });
-
           setIsModalOpen(false);
         };
 
-        const handleGeneralUpdate = (teamIndex, colIndex, updates) => {
+        const handleUpdate = (tIdx, cIdx, upd) => {
           setTeams(prev => {
-            const newTeams = [...prev];
-            const team = { ...newTeams[teamIndex] };
-            const newGenerals = [...team.generals];
-            newGenerals[colIndex] = { ...newGenerals[colIndex], ...updates };
-            team.generals = newGenerals;
-            newTeams[teamIndex] = team;
-            return newTeams;
+            const next = [...prev];
+            next[tIdx].generals[cIdx] = { ...next[tIdx].generals[cIdx], ...upd };
+            return next;
           });
         };
 
-        const handleClearAll = () => {
-          if(confirm('確定要清空所有配置嗎？')) {
-            setTeams(INITIAL_TEAMS);
-            window.location.hash = '';
-          }
-        };
-
         const handleShare = () => {
-          const data = teams.map(t => ({
-            g: t.generals.map(g => g.name ? [g.name, g.isCollection ? 1 : 0, g.redness] : null),
-            t: [...t.tacticsRow1, ...t.tacticsRow2]
-          }));
-
-          try {
-            const json = JSON.stringify(data);
-            const hash = btoa(encodeURIComponent(json));
-            window.location.hash = hash;
-            
-            navigator.clipboard.writeText(window.location.href).then(() => {
-              alert("網址已複製到剪貼簿！您可以分享此連結來保存或傳送您的隊伍配置。");
-            }, () => {
-               alert("配置已保存到網址，請手動複製瀏覽器網址。");
-            });
-          } catch (e) {
-            console.error("Failed to generate share link", e);
-            alert("生成連結失敗");
-          }
+          const data = teams.map(t => ({ g: t.generals.map(g => g.name ? [g.name, g.isCollection?1:0, g.redness] : null), t: [...t.tacticsRow1, ...t.tacticsRow2] }));
+          window.location.hash = btoa(encodeURIComponent(JSON.stringify(data)));
+          navigator.clipboard.writeText(window.location.href).then(() => alert("連結已複製到剪貼簿！"));
         };
+
+        const handleReset = () => { if(confirm("確定要清除所有隊伍嗎？")) setTeams(Array.from({ length: 6 }, (_, i) => createEmptyTeam(i))); window.location.hash = ''; };
 
         return (
-          <div className="min-h-screen pb-10 px-2 sm:px-4 md:px-8 max-w-7xl mx-auto">
+          <div className="min-h-screen pb-10 px-4 max-w-7xl mx-auto">
             <header className="py-8 text-center">
-              <h1 className="text-3xl font-bold text-gray-800 tracking-tight mb-2">三國志戰略版配將</h1>
-              <p className="text-gray-500 text-sm">開荒與共存陣容模擬</p>
-              
-              <div className="flex items-center justify-center gap-4 mt-6">
-                <button 
-                  onClick={handleShare}
-                  className="flex items-center gap-2 px-5 py-2.5 text-sm font-medium text-white bg-blue-600 rounded-full hover:bg-blue-700 transition-colors shadow-md active:scale-95"
-                >
-                  <Share2 size={16} />
-                  分享配置
-                </button>
-
-                <button 
-                  onClick={handleClearAll}
-                  className="flex items-center gap-2 px-5 py-2.5 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-full hover:bg-gray-50 transition-colors shadow-sm active:scale-95"
-                >
-                  <RotateCcw size={16} />
-                  重置
-                </button>
+              <h1 className="text-4xl font-black text-gray-900 mb-2 tracking-tight">三國志戰略版配將</h1>
+              <p className="text-gray-500 text-sm font-medium italic">開荒、共存陣容模擬器</p>
+              <div className="flex justify-center gap-4 mt-6">
+                <button onClick={handleShare} className="flex items-center gap-2 px-6 py-2.5 bg-blue-600 text-white rounded-full shadow-lg hover:bg-blue-700 transition-all active:scale-95 font-bold text-sm"><Share2 size={16}/>分享配置</button>
+                <button onClick={handleReset} className="px-6 py-2.5 border rounded-full bg-white shadow-md hover:bg-gray-50 transition-all active:scale-95 font-bold text-sm text-gray-600 flex items-center gap-2"><RotateCcw size={16}/>重置</button>
               </div>
             </header>
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-              {teams.map((team, index) => (
-                <TeamCard 
-                  key={team.id}
-                  index={index}
-                  title={index === 0 ? '開荒隊伍' : `隊伍 ${index}`}
-                  team={team}
-                  generalCounts={generalCounts}
-                  tacticCounts={tacticCounts}
-                  onSlotClick={handleSlotClick}
-                  onGeneralUpdate={handleGeneralUpdate}
-                />
-              ))}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {teams.map((t, i) => <TeamCard key={t.id} index={i} title={i===0?'開荒隊伍':`共存隊伍 ${i}`} team={t} onSlotClick={handleSlotClick} onGeneralUpdate={handleUpdate} />)}
             </div>
-
-            {isModalOpen && activeSelection && (
-              <SelectionModal 
-                isOpen={isModalOpen}
-                type={activeSelection.type}
-                currentValue={activeSelection.currentValue}
-                onClose={() => setIsModalOpen(false)}
-                onSelect={handleSelect}
-              />
-            )}
+            {isModalOpen && <SelectionModal isOpen={isModalOpen} type={active.type} currentValue={active.val} onSelect={handleSelect} onClose={() => setIsModalOpen(false)} />}
           </div>
         );
-      }
+      };
 
-      // --- Mount ---
-      const root = ReactDOM.createRoot(document.getElementById('root'));
-      root.render(
-        <React.StrictMode>
-          <App />
-        </React.StrictMode>
-      );
+      ReactDOM.createRoot(document.getElementById('root')).render(<App />);
     </script>
 </body>
 </html>
