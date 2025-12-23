@@ -224,12 +224,12 @@
       };
 
       const TACTIC_COLORS = {
-        [TacticType.Command]: 'bg-cyber-panel border border-t_command text-t_command',
-        [TacticType.Passive]: 'bg-cyber-panel border border-t_passive text-t_passive',
-        [TacticType.Formation]: 'bg-cyber-panel border border-t_formation text-t_formation',
-        [TacticType.Assault]: 'bg-cyber-panel border border-t_assault text-t_assault',
-        [TacticType.Troop]: 'bg-cyber-panel border border-t_troop text-t_troop',
-        [TacticType.Active]: 'bg-cyber-panel border border-t_active text-t_active',
+        [TacticType.Command]: 'bg-zinc-700 border border-t_command text-t_command brightness-125',
+        [TacticType.Passive]: 'bg-zinc-700 border border-t_passive text-t_passive brightness-125',
+        [TacticType.Formation]: 'bg-zinc-700 border border-t_formation text-t_formation brightness-125',
+        [TacticType.Assault]: 'bg-zinc-700 border border-t_assault text-t_assault brightness-125',
+        [TacticType.Troop]: 'bg-zinc-700 border border-t_troop text-t_troop brightness-125',
+        [TacticType.Active]: 'bg-zinc-700 border border-t_active text-t_active brightness-125',
       };
 
       const STORAGE_KEY = 'tk_builder_stable_vfinal';
@@ -342,18 +342,25 @@
            appState.modal.activeTab = 'All';
         }
         
+        // Fix jumping: compensate for scrollbar width
+        const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+        document.body.style.paddingRight = scrollbarWidth + 'px';
         document.body.style.overflow = 'hidden';
+        
         renderApp();
         
-        // Focus search if valid
+        // Focus search if valid, use preventScroll to avoid jumping
         const searchInput = document.getElementById('modalSearchInput');
-        if (searchInput) searchInput.focus();
+        if (searchInput) searchInput.focus({ preventScroll: true });
       }
 
       function closeModal() {
         appState.isModalOpen = false;
         appState.activeSelection = null;
+        
         document.body.style.overflow = '';
+        document.body.style.paddingRight = '';
+        
         renderApp();
       }
 
@@ -408,11 +415,12 @@
         // Maintain focus is handled by re-rendering carefully or re-focusing
         const el = document.getElementById('modalSearchInput');
         if(el) {
-            el.focus();
+            el.focus({ preventScroll: true });
             el.setSelectionRange(el.value.length, el.value.length);
         }
       }
       
+      // Optimized Toggle: Updates DOM directly to avoid re-rendering layout
       function modalToggleItem(name) {
         const { type } = appState.activeSelection;
         if (type === 'general') {
@@ -425,7 +433,33 @@
                 else prev = [...prev, name];
             }
             appState.modal.selectedItems = prev;
-            renderApp();
+            
+            // In-place update to prevent shake
+            const buttons = document.querySelectorAll('#modal-grid button');
+            buttons.forEach(btn => {
+                const btnName = btn.getAttribute('data-name');
+                const isSel = prev.includes(btnName);
+                const textSpan = btn.querySelector('span');
+                
+                if (isSel) {
+                    btn.classList.remove('border-cyber-border', 'hover:border-white');
+                    btn.classList.add('border-cyber-cyan', 'shadow-[0_0_10px_rgba(0,243,255,0.4)]');
+                    if(textSpan) {
+                        textSpan.classList.remove('text-cyber-dim');
+                        textSpan.classList.add('text-cyber-cyan', 'group-hover:text-white');
+                    }
+                } else {
+                    btn.classList.remove('border-cyber-cyan', 'shadow-[0_0_10px_rgba(0,243,255,0.4)]');
+                    btn.classList.add('border-cyber-border', 'hover:border-white');
+                    if(textSpan) {
+                        textSpan.classList.remove('text-cyber-cyan', 'group-hover:text-white');
+                        textSpan.classList.add('text-cyber-dim');
+                    }
+                }
+            });
+            
+            const countEl = document.getElementById('modal-buffer-count');
+            if (countEl) countEl.innerText = `BUFFER: ${prev.length}/2`;
         }
       }
 
@@ -449,9 +483,24 @@
           handleModalSelect(null);
       }
 
+      // Optimized Soldier Book Toggles
       function modalSetSbBig(opt) {
           appState.modal.sbBig = opt;
-          renderApp();
+          
+          const buttons = document.querySelectorAll('[data-sb-big]');
+          buttons.forEach(btn => {
+              const btnOpt = btn.getAttribute('data-sb-big');
+              if (btnOpt === opt) {
+                  btn.className = 'py-3 px-2 border text-sm font-bold transition-all bg-cyber-cyan/20 border-cyber-cyan text-cyber-cyan shadow-[0_0_10px_rgba(0,243,255,0.3)]';
+              } else {
+                  btn.className = 'py-3 px-2 border text-sm font-bold transition-all border-cyber-border text-cyber-dim hover:border-white hover:text-white';
+              }
+          });
+          
+          const smallContainer = document.getElementById('sb-small-container');
+          if (smallContainer) {
+              smallContainer.classList.remove('opacity-30', 'pointer-events-none', 'grayscale');
+          }
       }
 
       function modalToggleSbSmall(opt) {
@@ -462,7 +511,16 @@
               else prev = [...prev, opt];
           }
           appState.modal.sbSmall = prev;
-          renderApp();
+          
+          const buttons = document.querySelectorAll('[data-sb-small]');
+          buttons.forEach(btn => {
+              const btnOpt = btn.getAttribute('data-sb-small');
+              if (prev.includes(btnOpt)) {
+                  btn.className = 'py-2 px-2 border text-xs font-bold transition-all bg-cyber-pink/20 border-cyber-pink text-cyber-pink shadow-[0_0_10px_rgba(255,0,255,0.3)]';
+              } else {
+                  btn.className = 'py-2 px-2 border text-xs font-bold transition-all border-cyber-border text-cyber-dim hover:border-white hover:text-white';
+              }
+          });
       }
 
       // --- Rendering Helpers ---
@@ -497,7 +555,7 @@
         <header class="py-4 px-6 sticky top-0 z-20 bg-cyber-bg/90 backdrop-blur-md border-b-2 border-cyber-cyan shadow-[0_0_15px_rgba(0,243,255,0.2)] mb-8 clip-path-header">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div class="flex items-center gap-3">
-                <i data-lucide="cpu" class="text-cyber-cyan w-8 h-8 animate-pulse-fast"></i>
+                <i data-lucide="cpu" width="32" height="32" class="text-cyber-cyan animate-pulse-fast"></i>
                 <div>
                 <h1 class="text-2xl font-black text-cyber-cyan tracking-tighter uppercase leading-none drop-shadow-[0_0_5px_rgba(0,243,255,0.8)]">
                     配將模擬器
@@ -526,10 +584,10 @@
                 </div>
                 <div class="flex gap-3">
                 <button onclick="saveData()" class="cyber-btn bg-cyber-card border border-cyber-cyan text-cyber-cyan px-5 py-2 hover:bg-cyber-cyan hover:text-black flex items-center gap-2 font-bold text-xs uppercase tracking-widest shadow-[0_0_5px_rgba(0,243,255,0.3)]">
-                    <i data-lucide="save" size="14"></i> Save
+                    <i data-lucide="save" width="14" height="14"></i> Save
                 </button>
                 <button onclick="resetData()" class="cyber-btn bg-cyber-card border border-cyber-red text-cyber-red px-3 py-2 hover:bg-cyber-red hover:text-black flex items-center gap-2 font-bold text-xs uppercase tracking-widest shadow-[0_0_5px_rgba(255,42,42,0.3)]">
-                    <i data-lucide="rotate-ccw" size="14"></i>
+                    <i data-lucide="rotate-ccw" width="14" height="14"></i>
                 </button>
                 </div>
             </div>
@@ -611,7 +669,7 @@
              <div class="absolute inset-0 bg-[linear-gradient(rgba(0,0,0,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.1)_1px,transparent_1px)] bg-[size:4px_4px] opacity-20 pointer-events-none"></div>
           ` : `
              <div class="flex flex-col items-center gap-1 opacity-50">
-                <i data-lucide="plus" size="20"></i>
+                <i data-lucide="plus" width="20" height="20"></i>
                 <span class="text-[9px] tracking-widest uppercase">Empty</span>
              </div>
           `;
@@ -622,7 +680,8 @@
               starsHtml = '<div class="flex gap-0.5 justify-center py-1">';
               for (let s = 1; s <= 5; s++) {
                   const fillClass = s <= g.redness ? 'fill-cyber-red text-cyber-red drop-shadow-[0_0_3px_#ff2a2a]' : 'fill-cyber-dim/20 text-cyber-dim hover:text-cyber-red';
-                  starsHtml += `<button onclick="updateGeneral(${flatTeamIndex}, ${colIndex}, { redness: ${g.redness === s ? 0 : s} })" class="focus:outline-none transition-transform active:scale-90"><i data-lucide="star" size="12" class="transition-colors ${fillClass}"></i></button>`;
+                  // Changed size="12" to width="10" height="10" as requested (approx 2x smaller than default 24px)
+                  starsHtml += `<button onclick="updateGeneral(${flatTeamIndex}, ${colIndex}, { redness: ${g.redness === s ? 0 : s} })" class="focus:outline-none transition-transform active:scale-90"><i data-lucide="star" width="10" height="10" class="transition-colors ${fillClass}"></i></button>`;
               }
               starsHtml += '</div>';
           }
@@ -635,14 +694,14 @@
                     class="w-6 h-6 border flex items-center justify-center transition-all ${g.isCollection ? 'bg-cyber-yellow text-black border-cyber-yellow shadow-neon-yellow' : 'bg-black text-cyber-dim border-cyber-border hover:border-white'}"
                     title="典藏"
                   >
-                    <i data-lucide="disc" size="12"></i>
+                    <i data-lucide="disc" width="12" height="12"></i>
                   </button>
                   <button 
                     onclick="updateGeneral(${flatTeamIndex}, ${colIndex}, { isDynamic: ${!g.isDynamic} })"
                     class="w-6 h-6 border flex items-center justify-center transition-all ${g.isDynamic ? 'bg-cyber-pink text-black border-cyber-pink shadow-neon-pink' : 'bg-black text-cyber-dim border-cyber-border hover:border-white'}"
                     title="動態"
                   >
-                    <i data-lucide="activity" size="12"></i>
+                    <i data-lucide="activity" width="12" height="12"></i>
                   </button>
                 </div>
                 ${starsHtml}
@@ -685,7 +744,7 @@
                 class="w-full h-10 flex items-center justify-center text-[10px] font-bold transition-all active:scale-95 px-1 text-center leading-none tracking-tight ${styleClass} clip-path-btn"
                 style="clip-path: ${clipPath}"
             >
-                ${name ? `<span>${name}</span>` : `<i data-lucide="plus" size="14" class="opacity-20"></i>`}
+                ${name ? `<span>${name}</span>` : `<i data-lucide="plus" width="14" height="14" class="opacity-20"></i>`}
             </button>
           `;
       }
@@ -702,9 +761,9 @@
           if (hasContent) {
               content = `
                  <div class="flex flex-col gap-0.5 w-full">
-                   <div class="text-cyber-pink font-black text-[10px]">${sb.category}</div>
-                   ${sb.bigOption ? `<div class="text-cyber-cyan scale-90 truncate">${sb.bigOption}</div>` : ''}
-                   <div class="flex justify-center gap-1 scale-75 text-cyber-dim opacity-100">
+                   <div class="text-cyber-pink font-black text-sm">${sb.category}</div>
+                   ${sb.bigOption ? `<div class="text-cyber-cyan text-xs truncate">${sb.bigOption}</div>` : ''}
+                   <div class="flex justify-center gap-1 text-[11px] text-cyber-dim opacity-100">
                       ${sb.smallOption1 ? `<span>${sb.smallOption1}</span>` : ''}
                       ${sb.smallOption2 ? `<span>${sb.smallOption2}</span>` : ''}
                    </div>
@@ -771,6 +830,7 @@
             if (data) {
                 const bigBtns = data.big.map(opt => `
                     <button 
+                        data-sb-big="${opt}"
                         onclick="modalSetSbBig('${opt}')"
                         class="py-3 px-2 border text-sm font-bold transition-all ${sbBig === opt ? 'bg-cyber-cyan/20 border-cyber-cyan text-cyber-cyan shadow-[0_0_10px_rgba(0,243,255,0.3)]' : 'border-cyber-border text-cyber-dim hover:border-white hover:text-white'}"
                     >
@@ -780,6 +840,7 @@
 
                 const smallBtns = data.small.map(opt => `
                     <button 
+                        data-sb-small="${opt}"
                         onclick="modalToggleSbSmall('${opt}')"
                         class="py-2 px-2 border text-xs font-bold transition-all ${sbSmall.includes(opt) ? 'bg-cyber-pink/20 border-cyber-pink text-cyber-pink shadow-[0_0_10px_rgba(255,0,255,0.3)]' : 'border-cyber-border text-cyber-dim hover:border-white hover:text-white'}"
                     >
@@ -788,14 +849,14 @@
                 `).join('');
 
                 contentHtml = `
-                    <div class="flex flex-col h-full overflow-hidden">
+                    <div class="flex flex-col h-full overflow-hidden" id="modal-content-scroll">
                         <div class="p-4 bg-black/40 border-b border-cyber-border flex gap-2 overflow-x-auto no-scrollbar">${tabsHtml}</div>
                         <div class="flex-1 overflow-y-auto p-6 bg-[linear-gradient(rgba(0,243,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(0,243,255,0.03)_1px,transparent_1px)] bg-[size:20px_20px] space-y-6">
                             <div>
                                 <h4 class="text-cyber-cyan font-bold mb-3 border-l-4 border-cyber-cyan pl-2">核心 (BIG) <span class="text-xs text-cyber-dim ml-2">Select 1</span></h4>
                                 <div class="grid grid-cols-3 gap-4">${bigBtns}</div>
                             </div>
-                            <div class="${!sbBig ? 'opacity-30 pointer-events-none grayscale' : ''}">
+                            <div id="sb-small-container" class="${!sbBig ? 'opacity-30 pointer-events-none grayscale' : ''}">
                                 <h4 class="text-cyber-pink font-bold mb-3 border-l-4 border-cyber-pink pl-2">進階 (SMALL) <span class="text-xs text-cyber-dim ml-2">Select 2</span></h4>
                                 <div class="grid grid-cols-3 sm:grid-cols-4 gap-3">${smallBtns}</div>
                             </div>
@@ -822,6 +883,7 @@
                 
                 return `
                     <button 
+                        data-name="${item.name}"
                         onclick="modalToggleItem('${item.name}')" 
                         class="group flex flex-col items-center p-2 bg-black/60 border transition-all active:scale-95 hover:shadow-[0_0_10px_rgba(255,255,255,0.2)] ${isSelected ? 'border-cyber-cyan shadow-[0_0_10px_rgba(0,243,255,0.4)]' : 'border-cyber-border hover:border-white'}"
                     >
@@ -836,20 +898,15 @@
             contentHtml = `
                 <div class="p-4 bg-black/40 border-b border-cyber-border space-y-3">
                     <div class="relative group">
-                        <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 text-cyber-dim group-hover:text-cyber-cyan transition-colors" size="16"></i>
-                        <input id="modalSearchInput" type="text" placeholder="SEARCH_DATABASE..." class="w-full pl-10 pr-4 py-2 bg-black border border-cyber-border text-cyber-text font-mono text-sm focus:border-cyber-cyan focus:shadow-[0_0_10px_rgba(0,243,255,0.3)] outline-none transition-all placeholder:text-cyber-dim" value="${searchTerm}" oninput="modalSetSearch(this.value)" autofocus />
+                        <i data-lucide="search" width="16" height="16" class="absolute left-3 top-1/2 -translate-y-1/2 text-cyber-dim group-hover:text-cyber-cyan transition-colors"></i>
+                        <input id="modalSearchInput" type="text" placeholder="SEARCH_DATABASE..." class="w-full pl-10 pr-4 py-2 bg-black border border-cyber-border text-cyber-text font-mono text-sm focus:border-cyber-cyan focus:shadow-[0_0_10px_rgba(0,243,255,0.3)] outline-none transition-all placeholder:text-cyber-dim" value="${searchTerm}" oninput="modalSetSearch(this.value)" />
                     </div>
                     <div class="flex gap-2 overflow-x-auto no-scrollbar pb-1">
                         ${tabsHtml}
                     </div>
                 </div>
-                <div class="flex-1 overflow-y-auto p-4 bg-[linear-gradient(rgba(0,243,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(0,243,255,0.03)_1px,transparent_1px)] bg-[size:20px_20px]">
-                    ${selectedItems.length > 0 ? `
-                        <button onclick="modalClear()" class="w-full py-2 bg-cyber-red/10 text-cyber-red border border-cyber-red/50 hover:bg-cyber-red hover:text-black font-bold flex items-center justify-center gap-2 mb-4 active:scale-95 transition-all text-xs uppercase tracking-widest clip-path-btn">
-                            <i data-lucide="trash-2" size="14"></i> CLEAR SELECTION
-                        </button>
-                    ` : ''}
-                    <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
+                <div class="flex-1 overflow-y-auto p-4 bg-[linear-gradient(rgba(0,243,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(0,243,255,0.03)_1px,transparent_1px)] bg-[size:20px_20px]" id="modal-content-scroll">
+                    <div id="modal-grid" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
                         ${gridHtml}
                     </div>
                 </div>
@@ -862,12 +919,12 @@
                 <div class="relative w-full max-w-2xl bg-cyber-bg border border-cyber-cyan shadow-[0_0_30px_rgba(0,243,255,0.2)] flex flex-col max-h-[90vh] animate-slide-up overflow-hidden clip-path-btn" style="clip-path: polygon(20px 0, 100% 0, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%, 0 20px)">
                     <div class="px-4 py-3 bg-cyber-panel border-b border-cyber-border flex items-center justify-between shrink-0">
                         <div class="flex items-center gap-3">
-                            <i data-lucide="${type === 'soldierBook' ? 'book-open' : 'terminal'}" size="18" class="${type === 'soldierBook' ? 'text-cyber-yellow' : 'text-cyber-pink'}"></i>
+                            <i data-lucide="${type === 'soldierBook' ? 'book-open' : 'terminal'}" width="18" height="18" class="${type === 'soldierBook' ? 'text-cyber-yellow' : 'text-cyber-pink'}"></i>
                             <h3 class="text-lg font-bold text-cyber-text tracking-widest uppercase">
                                 SELECT // <span class="text-cyber-cyan">${type === 'general' ? 'WARLORD' : type === 'tactic' ? 'TACTIC' : 'SOLDIER BOOK'}</span>
                             </h3>
-                            ${type === 'tactic' && selectedItems.length > 0 ? `
-                                <span class="bg-cyber-cyan/20 text-cyber-cyan border border-cyber-cyan px-2 py-0.5 text-[10px] font-bold">
+                            ${type === 'tactic' ? `
+                                <span id="modal-buffer-count" class="bg-cyber-cyan/20 text-cyber-cyan border border-cyber-cyan px-2 py-0.5 text-[10px] font-bold">
                                     BUFFER: ${selectedItems.length}/2
                                 </span>
                             ` : ''}
@@ -875,11 +932,11 @@
                         <div class="flex items-center gap-2">
                             ${(type === 'tactic' || type === 'soldierBook') ? `
                                 <button onclick="modalConfirm()" class="p-1.5 bg-cyber-cyan text-black hover:bg-white transition-colors shadow-[0_0_10px_#00f3ff]">
-                                    <i data-lucide="check" size="18"></i>
+                                    <i data-lucide="check" width="18" height="18"></i>
                                 </button>
                             ` : ''}
                             <button onclick="closeModal()" class="p-1.5 bg-transparent border border-cyber-red text-cyber-red hover:bg-cyber-red hover:text-black transition-colors">
-                                <i data-lucide="x" size="18"></i>
+                                <i data-lucide="x" width="18" height="18"></i>
                             </button>
                         </div>
                     </div>
@@ -890,6 +947,15 @@
       }
 
       function renderApp() {
+        // Capture scroll positions and focus
+        const scrollTop = window.scrollY;
+        const modalScroll = document.getElementById('modal-content-scroll');
+        const modalScrollTop = modalScroll ? modalScroll.scrollTop : 0;
+        
+        const activeSearch = document.activeElement && document.activeElement.id === 'modalSearchInput';
+        const searchSelectionStart = activeSearch ? document.getElementById('modalSearchInput').selectionStart : 0;
+        const searchSelectionEnd = activeSearch ? document.getElementById('modalSearchInput').selectionEnd : 0;
+
         const counts = getCounts();
         
         // Get active teams based on page
@@ -907,6 +973,20 @@
         `;
 
         document.getElementById('app').innerHTML = html;
+        
+        // Restore scroll positions
+        window.scrollTo(0, scrollTop);
+        const newModalScroll = document.getElementById('modal-content-scroll');
+        if (newModalScroll) newModalScroll.scrollTop = modalScrollTop;
+        
+        // Restore focus
+        if (activeSearch) {
+            const input = document.getElementById('modalSearchInput');
+            if (input) {
+                input.focus({ preventScroll: true });
+                input.setSelectionRange(searchSelectionStart, searchSelectionEnd);
+            }
+        }
         
         // Re-initialize icons
         if (window.lucide) {
