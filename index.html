@@ -44,32 +44,6 @@
               'neon-pink': '0 0 5px #ff00ff, 0 0 10px #ff00ff',
               'neon-yellow': '0 0 5px #fcee0a, 0 0 10px #fcee0a',
               'neon-red': '0 0 5px #ff2a2a, 0 0 10px #ff2a2a',
-            },
-            animation: {
-              'pulse-fast': 'pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-              'glitch': 'glitch 1s linear infinite',
-              'scanline': 'scanline 8s linear infinite',
-              'slide-up': 'slideUp 0.3s ease-out forwards',
-              'breathe-red': 'breatheRed 2s ease-in-out infinite',
-            },
-            keyframes: {
-              glitch: {
-                '2%, 64%': { transform: 'translate(2px,0) skew(0deg)' },
-                '4%, 60%': { transform: 'translate(-2px,0) skew(0deg)' },
-                '62%': { transform: 'translate(0,0) skew(5deg)' },
-              },
-              scanline: {
-                '0%': { transform: 'translateY(-100%)' },
-                '100%': { transform: 'translateY(100%)' }
-              },
-              slideUp: {
-                'from': { transform: 'translateY(20px)', opacity: '0' },
-                'to': { transform: 'translateY(0)', opacity: '1' }
-              },
-              breatheRed: {
-                '0%, 100%': { borderColor: '#ff2a2a', boxShadow: '0 0 5px rgba(255, 42, 42, 0.4), inset 0 0 5px rgba(255, 42, 42, 0.2)' },
-                '50%': { borderColor: '#ff6666', boxShadow: '0 0 15px rgba(255, 42, 42, 0.9), inset 0 0 10px rgba(255, 42, 42, 0.5)' }
-              }
             }
           }
         }
@@ -138,6 +112,13 @@
 
       .no-scrollbar::-webkit-scrollbar { display: none; }
       .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+      /* Remove all animations, maintain transitions only for hover states color changes */
+      * {
+          transition-property: color, background-color, border-color, text-decoration-color, fill, stroke;
+          transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+          transition-duration: 150ms;
+      }
     </style>
 <script type="importmap">
 {
@@ -162,32 +143,32 @@
         <header class="py-4 px-6 sticky top-0 z-20 bg-cyber-bg/90 backdrop-blur-md border-b-2 border-cyber-cyan shadow-[0_0_15px_rgba(0,243,255,0.2)] mb-8 clip-path-header">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div class="flex items-center gap-3">
-                <i data-lucide="cpu" class="text-cyber-cyan w-8 h-8 animate-pulse-fast"></i>
+                <i data-lucide="cpu" class="text-cyber-cyan w-8 h-8"></i>
                 <div>
                   <h1 class="text-2xl font-black text-cyber-cyan tracking-tighter uppercase leading-none drop-shadow-[0_0_5px_rgba(0,243,255,0.8)]">
                     配將模擬器
                   </h1>
                   <div class="flex gap-2 text-[10px] uppercase font-bold tracking-widest leading-none mt-1">
                      <span class="text-cyber-dim">System: Online</span>
-                     <span class="text-cyber-red animate-pulse">Q喝杯茶做的</span>
+                     <span class="text-cyber-red">Q喝杯茶做的</span>
                   </div>
                 </div>
               </div>
               
               <div class="flex flex-row items-center gap-4">
                 <div class="flex p-1 bg-black/50 border border-cyber-dim rounded-none skew-x-[-10deg]">
-                  <button onclick="window.app.switchPage(1)" id="btn-page-1" class="skew-x-[10deg] px-6 py-1.5 text-xs font-bold transition-all uppercase tracking-wider bg-cyber-cyan text-black shadow-[0_0_10px_rgba(0,243,255,0.6)]">
+                  <button onclick="window.app.switchPage(1)" id="btn-page-1" class="skew-x-[10deg] px-6 py-1.5 text-xs font-bold uppercase tracking-wider bg-cyber-cyan text-black shadow-[0_0_10px_rgba(0,243,255,0.6)]">
                      Units 1-6
                   </button>
-                  <button onclick="window.app.switchPage(2)" id="btn-page-2" class="skew-x-[10deg] px-6 py-1.5 text-xs font-bold transition-all uppercase tracking-wider text-cyber-dim hover:text-white">
+                  <button onclick="window.app.switchPage(2)" id="btn-page-2" class="skew-x-[10deg] px-6 py-1.5 text-xs font-bold uppercase tracking-wider text-cyber-dim hover:text-white">
                      Units 7-12
                   </button>
                 </div>
                 <div class="flex gap-3">
-                  <button onclick="window.app.saveTeams()" class="px-5 py-2 flex items-center gap-2 font-bold text-xs uppercase tracking-widest bg-cyber-card border border-cyber-cyan text-cyber-cyan hover:bg-cyber-cyan hover:text-black shadow-[0_0_5px_rgba(0,243,255,0.3)] transition-all">
+                  <button onclick="window.app.saveTeams()" class="px-5 py-2 flex items-center gap-2 font-bold text-xs uppercase tracking-widest bg-cyber-card border border-cyber-cyan text-cyber-cyan hover:bg-cyber-cyan hover:text-black shadow-[0_0_5px_rgba(0,243,255,0.3)]">
                     <i data-lucide="save" width="14"></i> Save
                   </button>
-                  <button onclick="window.app.resetTeams()" class="px-3 py-2 flex items-center gap-2 font-bold text-xs uppercase tracking-widest bg-cyber-card border border-cyber-red text-cyber-red hover:bg-cyber-red hover:text-black shadow-[0_0_5px_rgba(255,42,42,0.3)] transition-all">
+                  <button onclick="window.app.resetTeams()" class="px-3 py-2 flex items-center gap-2 font-bold text-xs uppercase tracking-widest bg-cyber-card border border-cyber-red text-cyber-red hover:bg-cyber-red hover:text-black shadow-[0_0_5px_rgba(255,42,42,0.3)]">
                     <i data-lucide="rotate-ccw" width="14"></i>
                   </button>
                 </div>
@@ -197,7 +178,7 @@
 
         <main id="team-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mt-4">
             <!-- Team Cards will be injected here -->
-            <div class="text-cyber-dim text-center col-span-full py-10 font-bold animate-pulse">INITIALIZING SYSTEM...</div>
+            <div class="text-cyber-dim text-center col-span-full py-10 font-bold">INITIALIZING SYSTEM...</div>
         </main>
     </div>
 
@@ -509,8 +490,8 @@
                 // Update Page Buttons
                 const btn1 = document.getElementById('btn-page-1');
                 const btn2 = document.getElementById('btn-page-2');
-                const activeClass = "skew-x-[10deg] px-6 py-1.5 text-xs font-bold transition-all uppercase tracking-wider bg-cyber-cyan text-black shadow-[0_0_10px_rgba(0,243,255,0.6)]";
-                const inactiveClass = "skew-x-[10deg] px-6 py-1.5 text-xs font-bold transition-all uppercase tracking-wider text-cyber-dim hover:text-white";
+                const activeClass = "skew-x-[10deg] px-6 py-1.5 text-xs font-bold uppercase tracking-wider bg-cyber-cyan text-black shadow-[0_0_10px_rgba(0,243,255,0.6)]";
+                const inactiveClass = "skew-x-[10deg] px-6 py-1.5 text-xs font-bold uppercase tracking-wider text-cyber-dim hover:text-white";
 
                 if (window.appState.activePage === 1) {
                     btn1.className = activeClass;
@@ -551,9 +532,11 @@
                     let baseStyle = general ? FACTION_COLORS[general.faction] : 'bg-gray-800 text-white';
                     
                     if (isDynamic) {
-                        baseStyle = `bg-black border-2 border-cyber-yellow text-cyber-yellow shadow-neon-yellow animate-pulse-fast`;
+                        // Removed animation, added static strong glow
+                        baseStyle = `bg-black border-2 border-cyber-yellow text-cyber-yellow shadow-[0_0_10px_#fcee0a]`;
                     } else if (isDup) {
-                        baseStyle = `bg-black border-2 border-cyber-red text-cyber-red animate-breathe-red`;
+                        // Removed animation, added static strong border
+                        baseStyle = `bg-black border-2 border-cyber-red text-cyber-red shadow-[0_0_10px_#ff2a2a]`;
                     }
                     return baseStyle;
                 };
@@ -564,7 +547,7 @@
                     const isDup = n && counts.tC[n] > 1;
                     const baseColor = t ? TACTIC_COLORS[t.type] : 'bg-transparent text-white';
                     let style = `${baseColor} shadow-[0_0_5px_rgba(0,0,0,0.8)]`;
-                    if (isDup) style += ' border-cyber-red border-2 text-cyber-red animate-breathe-red';
+                    if (isDup) style += ' border-cyber-red border-2 text-cyber-red';
                     return style;
                 };
 
@@ -651,7 +634,7 @@
                 }).join('');
 
                 return `
-                <div class="cyber-card p-5 group transition-all hover:border-cyber-cyan/60 animate-slide-up" style="animation-delay: ${(index % 6) * 0.1}s">
+                <div class="cyber-card p-5 group transition-all hover:border-cyber-cyan/60">
                     <div class="absolute top-0 left-0 w-2 h-2 border-t-2 border-l-2 border-cyber-cyan"></div>
                     <div class="absolute top-0 right-0 w-2 h-2 border-t-2 border-r-2 border-cyber-cyan"></div>
                     <div class="absolute bottom-0 left-0 w-2 h-2 border-b-2 border-l-2 border-cyber-cyan"></div>
