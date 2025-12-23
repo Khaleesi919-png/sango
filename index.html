@@ -131,6 +131,10 @@
       .clip-path-polygon {
         clip-path: polygon(15% 0, 100% 0, 100% 85%, 85% 100%, 0 100%, 0 15%);
       }
+      
+      .clip-path-header {
+         clip-path: polygon(0 0, 100% 0, 100% 85%, 98% 100%, 2% 100%, 0 85%);
+      }
 
       .no-scrollbar::-webkit-scrollbar { display: none; }
       .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
@@ -153,9 +157,734 @@
     </div>
 
     <!-- App Container -->
-    <div id="root"></div>
+    <div id="root" class="min-h-screen pb-40 px-4 max-w-7xl mx-auto flex flex-col font-mono text-cyber-text">
+        <!-- Header -->
+        <header class="py-4 px-6 sticky top-0 z-20 bg-cyber-bg/90 backdrop-blur-md border-b-2 border-cyber-cyan shadow-[0_0_15px_rgba(0,243,255,0.2)] mb-8 clip-path-header">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div class="flex items-center gap-3">
+                <i data-lucide="cpu" class="text-cyber-cyan w-8 h-8 animate-pulse-fast"></i>
+                <div>
+                  <h1 class="text-2xl font-black text-cyber-cyan tracking-tighter uppercase leading-none drop-shadow-[0_0_5px_rgba(0,243,255,0.8)]">
+                    配將模擬器
+                  </h1>
+                  <div class="flex gap-2 text-[10px] uppercase font-bold tracking-widest leading-none mt-1">
+                     <span class="text-cyber-dim">System: Online</span>
+                     <span class="text-cyber-red animate-pulse">Q喝杯茶做的</span>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="flex flex-row items-center gap-4">
+                <div class="flex p-1 bg-black/50 border border-cyber-dim rounded-none skew-x-[-10deg]">
+                  <button onclick="switchPage(1)" id="btn-page-1" class="skew-x-[10deg] px-6 py-1.5 text-xs font-bold transition-all uppercase tracking-wider bg-cyber-cyan text-black shadow-[0_0_10px_rgba(0,243,255,0.6)]">
+                     Units 1-6
+                  </button>
+                  <button onclick="switchPage(2)" id="btn-page-2" class="skew-x-[10deg] px-6 py-1.5 text-xs font-bold transition-all uppercase tracking-wider text-cyber-dim hover:text-white">
+                     Units 7-12
+                  </button>
+                </div>
+                <div class="flex gap-3">
+                  <button onclick="saveTeams()" class="cyber-btn bg-cyber-card border border-cyber-cyan text-cyber-cyan px-5 py-2 hover:bg-cyber-cyan hover:text-black flex items-center gap-2 font-bold text-xs uppercase tracking-widest shadow-[0_0_5px_rgba(0,243,255,0.3)]">
+                    <i data-lucide="save" size="14"></i> Save
+                  </button>
+                  <button onclick="resetTeams()" class="cyber-btn bg-cyber-card border border-cyber-red text-cyber-red px-3 py-2 hover:bg-cyber-red hover:text-black flex items-center gap-2 font-bold text-xs uppercase tracking-widest shadow-[0_0_5px_rgba(255,42,42,0.3)]">
+                    <i data-lucide="rotate-ccw" size="14"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </header>
 
-    <!-- Script to load the App -->
-    <script type="module" src="./index.tsx"></script>
+        <main id="team-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mt-4">
+            <!-- Team Cards will be injected here -->
+        </main>
+    </div>
+
+    <!-- Modal Container -->
+    <div id="modal-container" class="hidden fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
+        <!-- Modal content will be injected here -->
+    </div>
+
+    <!-- Logic -->
+    <script>
+        // --- Constants & Types Data ---
+        const Faction = { Wei: '魏', Shu: '蜀', Wu: '吳', Qun: '群' };
+        const TacticType = { Command: '指揮', Passive: '被動', Formation: '陣法', Assault: '突擊', Troop: '兵種', Active: '主動' };
+        
+        const FACTION_COLORS = {
+            [Faction.Wei]: 'bg-cyber-panel border-2 border-wei text-wei shadow-[0_0_12px_rgba(0,168,255,0.4)]',
+            [Faction.Shu]: 'bg-cyber-panel border-2 border-shu text-shu shadow-[0_0_12px_rgba(0,255,159,0.4)]',
+            [Faction.Wu]: 'bg-cyber-panel border-2 border-wu text-wu shadow-[0_0_12px_rgba(255,42,42,0.4)]',
+            [Faction.Qun]: 'bg-cyber-panel border-2 border-qun text-qun shadow-[0_0_12px_rgba(252,238,10,0.4)]',
+        };
+
+        const TACTIC_COLORS = {
+            [TacticType.Command]: 'bg-transparent border border-t_command text-t_command',
+            [TacticType.Passive]: 'bg-transparent border border-t_passive text-t_passive',
+            [TacticType.Formation]: 'bg-transparent border border-t_formation text-t_formation',
+            [TacticType.Assault]: 'bg-transparent border border-t_assault text-t_assault',
+            [TacticType.Troop]: 'bg-transparent border border-t_troop text-t_troop',
+            [TacticType.Active]: 'bg-transparent border border-t_active text-t_active',
+        };
+
+        const GENERALS_DATA = [
+            // 蜀
+            { faction: Faction.Shu, name: '劉備 7' }, { faction: Faction.Shu, name: '龐統 7' }, { faction: Faction.Shu, name: '諸葛亮 7' }, { faction: Faction.Shu, name: 'SP諸葛亮 6' }, { faction: Faction.Shu, name: '關羽 7' }, { faction: Faction.Shu, name: 'SP關羽 7' }, { faction: Faction.Shu, name: 'SP黃月英 4' }, { faction: Faction.Shu, name: '黃忠 6' }, { faction: Faction.Shu, name: 'SP黃忠 6' }, { faction: Faction.Shu, name: '趙雲 6' }, { faction: Faction.Shu, name: '張飛 6' }, { faction: Faction.Shu, name: '姜維 6' }, { faction: Faction.Shu, name: '關銀屏 6' }, { faction: Faction.Shu, name: '魏延 6' }, { faction: Faction.Shu, name: '張苞 6' }, { faction: Faction.Shu, name: '關興 6' }, { faction: Faction.Shu, name: 'SP法正 6' }, { faction: Faction.Shu, name: '星彩 6' },{ faction: Faction.Shu, name: '法正 4' }, { faction: Faction.Shu, name: '王平 5' }, { faction: Faction.Shu, name: '徐庶 5' }, { faction: Faction.Shu, name: '黃月英 4' }, { faction: Faction.Shu, name: '馬超 7' }, { faction: Faction.Shu, name: 'CO關平 6' }, { faction: Faction.Shu, name: '馬雲祿 5' }, { faction: Faction.Shu, name: '陳到 6' }, { faction: Faction.Shu, name: '嚴顏 6' }, { faction: Faction.Shu, name: '伊籍 6' },
+            // 魏
+            { faction: Faction.Wei, name: '司馬懿 7' }, { faction: Faction.Wei, name: '曹操 7' }, { faction: Faction.Wei, name: '滿寵 5' }, { faction: Faction.Wei, name: '典韋 6' }, { faction: Faction.Wei, name: 'SP典韋 6' }, { faction: Faction.Wei, name: '賈詡 7' }, { faction: Faction.Wei, name: 'SP荀彧 7' }, { faction: Faction.Wei, name: 'SP郭嘉 6' }, { faction: Faction.Wei, name: '荀攸 6' }, { faction: Faction.Wei, name: '張遼 7' }, { faction: Faction.Wei, name: '王元姬 5' }, { faction: Faction.Wei, name: '郭嘉 5' }, { faction: Faction.Wei, name: '王異 6' }, { faction: Faction.Wei, name: '龐德 5' }, { faction: Faction.Wei, name: 'SP龐德 6' }, { faction: Faction.Wei, name: 'CO曹丕 7' }, { faction: Faction.Wei, name: '郝昭 5' }, { faction: Faction.Wei, name: '曹仁 6' }, { faction: Faction.Wei, name: 'CO甄姬 5' }, { faction: Faction.Wei, name: '程昱 5' }, { faction: Faction.Wei, name: '許褚 6' }, { faction: Faction.Wei, name: '張郃 6' }, { faction: Faction.Wei, name: '徐晃 6' }, { faction: Faction.Wei, name: '夏侯惇 6' }, { faction: Faction.Wei, name: '鍾會 6' }, { faction: Faction.Wei, name: '王雙 5' }, { faction: Faction.Wei, name: '曹純 5' }, { faction: Faction.Wei, name: '于禁 5' }, { faction: Faction.Wei, name: '樂進 5' }, { faction: Faction.Wei, name: '鄧艾 5' }, { faction: Faction.Wei, name: '夏侯淵 5' }, { faction: Faction.Wei, name: '張春華 3' }, { faction: Faction.Wei, name: 'SP劉曄 6' }, { faction: Faction.Wei, name: 'SP曹真 6' },
+            // 吳
+            { faction: Faction.Wu, name: '孫尚香 6' }, { faction: Faction.Wu, name: '周泰 6' }, { faction: Faction.Wu, name: '凌統 6' }, { faction: Faction.Wu, name: '陸遜 7' }, { faction: Faction.Wu, name: '魯肅 6' }, { faction: Faction.Wu, name: '周瑜 6' }, { faction: Faction.Wu, name: 'SP周瑜 6' }, { faction: Faction.Wu, name: '孫權 6' }, { faction: Faction.Wu, name: 'CO大喬 6' }, { faction: Faction.Wu, name: 'CO小喬 5' }, { faction: Faction.Wu, name: '呂蒙 6' }, { faction: Faction.Wu, name: 'SP呂蒙 7' }, { faction: Faction.Wu, name: '太史慈 6' }, { faction: Faction.Wu, name: '孫堅 6' }, { faction: Faction.Wu, name: 'SP孫堅 7' }, { faction: Faction.Wu, name: '甘寧 6' }, { faction: Faction.Wu, name: '程普 5' }, { faction: Faction.Wu, name: '陸抗 6' }, { faction: Faction.Wu, name: '黃蓋 5' }, { faction: Faction.Wu, name: '諸葛格 4' }, { faction: Faction.Wu, name: '孫策 5' },
+            // 群
+            { faction: Faction.Qun, name: 'SP馬超 7' }, { faction: Faction.Qun, name: 'SP皇甫嵩 6' }, { faction: Faction.Qun, name: 'SP袁紹 7' }, { faction: Faction.Qun, name: 'SP朱儁 6' }, { faction: Faction.Qun, name: '沮授 6' }, { faction: Faction.Qun, name: '貂蟬 4' }, { faction: Faction.Qun, name: 'SP貂蟬 6' }, { faction: Faction.Qun, name: '許攸 6' }, { faction: Faction.Qun, name: '呂布 7' }, { faction: Faction.Qun, name: '袁術 6' }, { faction: Faction.Qun, name: '公孫瓚 6' }, { faction: Faction.Qun, name: '張角 6' }, { faction: Faction.Qun, name: '于吉 7' }, { faction: Faction.Qun, name: '華佗 5' }, { faction: Faction.Qun, name: '左慈 5' }, { faction: Faction.Qun, name: '董卓 7' }, { faction: Faction.Qun, name: 'SP董卓 7' }, { faction: Faction.Qun, name: '孟獲 7' }, { faction: Faction.Qun, name: '呂玲綺 6' }, { faction: Faction.Qun, name: '祝融夫人 6' }, { faction: Faction.Qun, name: '兀突骨 6' }, { faction: Faction.Qun, name: '袁紹 6' }, { faction: Faction.Qun, name: '麴義 6' }, { faction: Faction.Qun, name: '朵思大王 6' }, { faction: Faction.Qun, name: '木鹿大王 6' }, { faction: Faction.Qun, name: '張讓 5' }, { faction: Faction.Qun, name: '李儒 5' }, { faction: Faction.Qun, name: '高順 5' }, { faction: Faction.Qun, name: '馬騰 5' }, { faction: Faction.Qun, name: '文醜 5' }, { faction: Faction.Qun, name: '華雄 5' }, { faction: Faction.Qun, name: '顏良 5' }, { faction: Faction.Qun, name: '高覽 5' }, { faction: Faction.Qun, name: '陳宮 5' }, { faction: Faction.Qun, name: '蔡文姬 3' }, { faction: Faction.Qun, name: '董白 3' }, { faction: Faction.Qun, name: 'SP張寶 6' }, { faction: Faction.Qun, name: 'SP張梁 5' }, { faction: Faction.Qun, name: '田豐 6' }, { faction: Faction.Qun, name: '兲丨Q 30' }, { faction: Faction.Qun, name: '雞枝風 3CM' }, { faction: Faction.Qun, name: '大麥克 3CM' }, { faction: Faction.Qun, name: '鄒氏 3' }
+        ];
+
+        const TACTICS_DATA = [
+            { type: TacticType.Command, name: '虛實奇謀' }, { type: TacticType.Command, name: '深謀遠慮' }, { type: TacticType.Command, name: '蓄勢待發' }, { type: TacticType.Command, name: '暫避其鋒' }, { type: TacticType.Command, name: '轉.暫避統' }, { type: TacticType.Command, name: '盛氣淩敵' }, { type: TacticType.Command, name: '用武神通' }, { type: TacticType.Command, name: '轉.用武武' }, { type: TacticType.Command, name: '夢中弒臣' }, { type: TacticType.Command, name: '挫銳' }, { type: TacticType.Command, name: '非攻制勝' }, { type: TacticType.Command, name: '轉.非攻智' }, { type: TacticType.Command, name: '鐵騎驅馳' }, { type: TacticType.Command, name: '撫輯軍民' }, { type: TacticType.Command, name: '轉.撫輯智' },{ type: TacticType.Command, name: '禦敵屏障' }, { type: TacticType.Command, name: '長者之風' }, { type: TacticType.Command, name: '鋒芒畢露' }, { type: TacticType.Command, name: '整裝待發' }, { type: TacticType.Command, name: '義心昭烈' }, { type: TacticType.Command, name: '奇計良謀' }, { type: TacticType.Command, name: '橫戈躍馬' }, { type: TacticType.Command, name: '整軍經武' }, { type: TacticType.Command, name: '剛柔並濟' }, { type: TacticType.Command, name: '眾志成城' }, { type: TacticType.Command, name: '轉.眾志武' },{ type: TacticType.Command, name: '知己知彼' },
+            { type: TacticType.Passive, name: '功不唐捐' }, { type: TacticType.Passive, name: '整軍經武' }, { type: TacticType.Passive, name: '千里走單騎' }, { type: TacticType.Passive, name: '魅惑' }, { type: TacticType.Passive, name: '合軍聚眾' }, { type: TacticType.Passive, name: '忠勇益烈' }, { type: TacticType.Passive, name: '文武雙全' }, { type: TacticType.Passive, name: '以寡擊眾' }, { type: TacticType.Passive, name: '絕地反擊' }, { type: TacticType.Passive, name: '士爭先赴' }, { type: TacticType.Passive, name: '裸衣血戰' }, { type: TacticType.Passive, name: '血刃爭鋒' }, { type: TacticType.Passive, name: '眾動萬計' }, { type: TacticType.Passive, name: '太平道法' }, { type: TacticType.Passive, name: '自癒' }, { type: TacticType.Passive, name: '後發制人' }, { type: TacticType.Passive, name: '氣凌三軍' }, { type: TacticType.Passive, name: '虎踞鷹揚' }, { type: TacticType.Passive, name: '引弦力戰' }, { type: TacticType.Passive, name: '剛勇無前' }, { type: TacticType.Passive, name: '騎虎難下' }, { type: TacticType.Passive, name: '白眉' }, { type: TacticType.Passive, name: '兵無常勢' }, { type: TacticType.Passive, name: '士別三日' }, { type: TacticType.Passive, name: '乘勝長驅' },
+            { type: TacticType.Formation, name: '潛龍陣' }, { type: TacticType.Formation, name: '鋒矢陣' }, { type: TacticType.Formation, name: '八門金鎖陣' }, { type: TacticType.Formation, name: '箕形陣' }, { type: TacticType.Formation, name: '三勢陣' }, { type: TacticType.Formation, name: '行一陣' }, { type: TacticType.Formation, name: '武鋒陣' }, { type: TacticType.Formation, name: '長蛇陣' }, { type: TacticType.Formation, name: '魚鱗陣' },
+            { type: TacticType.Assault, name: '摧鋒斷刃' }, { type: TacticType.Assault, name: '折衝禦侮' }, { type: TacticType.Assault, name: '暴戾無仁' }, { type: TacticType.Assault, name: '一騎當千' }, { type: TacticType.Assault, name: '百騎劫營' }, { type: TacticType.Assault, name: '當鋒摧決' }, { type: TacticType.Assault, name: '速乘其利' }, { type: TacticType.Assault, name: '彎弓飲羽' }, { type: TacticType.Assault, name: '鬼神霆威' }, { type: TacticType.Assault, name: '破甲' }, { type: TacticType.Assault, name: '克敵制勝' }, { type: TacticType.Assault, name: '先成其慮' }, { type: TacticType.Assault, name: '勇者得前' }, { type: TacticType.Assault, name: '左右開弓' }, { type: TacticType.Assault, name: '手起刀落' },
+            { type: TacticType.Troop, name: '虎豹騎' }, { type: TacticType.Troop, name: '大戟士' }, { type: TacticType.Troop, name: '藤甲兵' }, { type: TacticType.Troop, name: '白馬義從' }, { type: TacticType.Troop, name: '先登士死' }, { type: TacticType.Troop, name: '陷陣營' }, { type: TacticType.Troop, name: '西涼鐵騎' }, { type: TacticType.Troop, name: '解煩衛' }, { type: TacticType.Troop, name: '錦帆軍' }, { type: TacticType.Troop, name: '飛熊軍' }, { type: TacticType.Troop, name: '象兵' }, { type: TacticType.Troop, name: '青州兵' }, { type: TacticType.Troop, name: '虎衛軍' }, { type: TacticType.Troop, name: '白毦兵' }, { type: TacticType.Troop, name: '無當飛軍' }, { type: TacticType.Troop, name: '丹陽兵' },
+            { type: TacticType.Active, name: '偽書相間' }, { type: TacticType.Active, name: '挾勢弄權' }, { type: TacticType.Active, name: '奪魂挾魄' }, { type: TacticType.Active, name: '轉.奪魂武' }, { type: TacticType.Active, name: '草船借箭' }, { type: TacticType.Active, name: '刮骨療傷' }, { type: TacticType.Active, name: '轉.刮骨統' },{ type: TacticType.Active, name: '嬰城自守' }, { type: TacticType.Active, name: '坐守孤城' }, { type: TacticType.Active, name: '杯蛇鬼車' }, { type: TacticType.Active, name: '竭力佐謀' }, { type: TacticType.Active, name: '因利制權' }, { type: TacticType.Active, name: '誘敵深入' }, { type: TacticType.Active, name: '威謀靡亢' }, { type: TacticType.Active, name: '挫志怒襲' }, { type: TacticType.Active, name: '乘敵不虞' }, { type: TacticType.Active, name: '傾國傾城' }, { type: TacticType.Active, name: '益其金鼓' }, { type: TacticType.Active, name: '定謀貴決' }, { type: TacticType.Active, name: '結盟' }, { type: TacticType.Active, name: '臨機制勝' }, { type: TacticType.Active, name: '熯天熾熱' }, { type: TacticType.Active, name: '火熾原燎' }, { type: TacticType.Active, name: '風助火勢' }, { type: TacticType.Active, name: '智計' }, { type: TacticType.Active, name: '兵鋒' }, { type: TacticType.Active, name: '上兵伐謀' }, { type: TacticType.Active, name: '破軍威勝' }, { type: TacticType.Active, name: '掣刀斫敵' }, { type: TacticType.Active, name: '臥薪嘗膽' }, { type: TacticType.Active, name: '縱兵劫掠' }, { type: TacticType.Active, name: '橫掃千軍' }, { type: TacticType.Active, name: '轉.橫掃智' },  { type: TacticType.Active, name: '疾風驟雨' },{ type: TacticType.Active, name: '焚輜營壘' }, { type: TacticType.Active, name: '萬軍奪帥' }, { type: TacticType.Active, name: '靈機一動' }, { type: TacticType.Active, name: '謬力同心' }, { type: TacticType.Active, name: '強攻' }, { type: TacticType.Active, name: '淨化' }, { type: TacticType.Active, name: '驅散' }, { type: TacticType.Active, name: '魯莽' }, { type: TacticType.Active, name: '運籌決算' }, { type: TacticType.Active, name: '屠几上肉' }, { type: TacticType.Active, name: '焰逐風飛' }, { type: TacticType.Active, name: '形機軍略' }, { type: TacticType.Active, name: '落鳳' }, { type: TacticType.Active, name: '避實擊虛' }, { type: TacticType.Active, name: '輕勇飛燕' }, { type: TacticType.Active, name: '擊其惰歸' }, { type: TacticType.Active, name: '決水潰城' }, { type: TacticType.Active, name: '絕其汲道' }, { type: TacticType.Active, name: '據水斷橋' }, { type: TacticType.Active, name: '機略縱橫' }, { type: TacticType.Active, name: '見機行事' }, { type: TacticType.Active, name: '聲東擊西' }, { type: TacticType.Active, name: '矢志不移' }, { type: TacticType.Active, name: '黃天泰平' }, { type: TacticType.Active, name: '瞋目橫矛' }, { type: TacticType.Active, name: '料事如神' }, { type: TacticType.Active, name: '落雷' }, { type: TacticType.Active, name: '驍勇善戰' }, { type: TacticType.Active, name: '一力拒守' }, { type: TacticType.Active, name: '守而必固' }, { type: TacticType.Active, name: '唇槍舌戰' }, { type: TacticType.Active, name: '舌戰群儒' }, { type: TacticType.Active, name: '獨行赴斗' }, { type: TacticType.Active, name: '四面楚歌' }, { type: TacticType.Active, name: '沉沙決水' }, { type: TacticType.Active, name: '風聲鶴唳' }, { type: TacticType.Active, name: '萬箭齊發' }, { type: TacticType.Active, name: '所向批靡' }, { type: TacticType.Active, name: '破陣摧堅' }
+        ];
+
+        
+        const SOLDIER_BOOK_DATA = {
+        '作戰': {big: ['蠻勇非勇','一鼓作氣','奇正相生', '勝而益強', '不勇則死'],
+          small: ['武略', '勝戰', '執銳', '分險','文韜', '藏刀']
+        },
+        '虛實': {
+          big: ['後發先至','大謀不謀','謀定後動','順應天時', '以治擊亂', '攻其不備'],
+          small: ['鬼謀', '妙算', '神機', '將威', '合變','佔卜']
+        },
+        '軍形': {
+          big: ['三裡而還','嚴陣以待', '惜兵愛民', '避其銳氣'],
+          small: ['守勢', '靜心', '防備', '鐵甲', '剛柔']
+        },
+        '九變': {
+          big: ['援其必攻','分疾而戰', '臨敵不亂', '無功而勵'],
+          small: ['虛掩', '馳援','厲軍', '救主', '百戰', '速戰']
+        },
+        '始計': {
+          big: ['樂善好施','洞若觀火','枕戈坐甲', '三軍之眾', '應機立斷','神清氣淨'],
+          small: ['久戰', '銳利', '歸心', '錘鍊','遠謀', '統軍']
+        },
+        '用間': {
+          big: ['審時度勢','出奇制勝', '兵行詭道', '以直報怨','以退為進'],
+          small: ['開闔', '持重', '精準', '善戰', '分利']
+        }
+        };
+
+        const STORAGE_KEY = 'tk_builder_stable_vfinal';
+
+        // --- State Management ---
+        let state = {
+            teams: [],
+            activePage: 1,
+            modal: {
+                isOpen: false,
+                type: null, // 'general' | 'tactic' | 'soldierBook'
+                teamIndex: null,
+                colIndex: null,
+                row: null, // 'generals' | 'tacticsRow1' | 'tacticsRow2'
+                currentValue: null,
+                currentSoldierBook: null,
+                // Modal internal state
+                activeTab: 'All',
+                searchTerm: '',
+                selectedItems: [],
+                sbCategory: null,
+                sbBig: null,
+                sbSmall: []
+            },
+            counts: { gC: {}, tC: {} }
+        };
+
+        function createEmptySoldierBook() {
+            return { category: null, bigOption: null, smallOption1: null, smallOption2: null };
+        }
+
+        function createEmptyGeneral() {
+            return { name: null, isCollection: false, isDynamic: false, redness: 0, soldierBook: createEmptySoldierBook() };
+        }
+
+        function initTeams() {
+            return Array.from({ length: 12 }, (_, i) => ({
+                id: i,
+                generals: [createEmptyGeneral(), createEmptyGeneral(), createEmptyGeneral()],
+                tacticsRow1: [null, null, null],
+                tacticsRow2: [null, null, null],
+            }));
+        }
+
+        function loadState() {
+            try {
+                const saved = localStorage.getItem(STORAGE_KEY);
+                if (saved) {
+                    const parsed = JSON.parse(saved);
+                    if (Array.isArray(parsed) && parsed.length === 12) {
+                        state.teams = parsed.map(team => ({
+                            ...team,
+                            generals: team.generals.map(g => ({
+                                ...g,
+                                soldierBook: g.soldierBook || createEmptySoldierBook()
+                            }))
+                        }));
+                    } else {
+                        state.teams = initTeams();
+                    }
+                } else {
+                    state.teams = initTeams();
+                }
+            } catch (e) {
+                console.error("Load failed", e);
+                state.teams = initTeams();
+            }
+            updateCounts();
+        }
+
+        function saveTeams() {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(state.teams));
+            alert("配將方案已儲存！");
+        }
+
+        function resetTeams() {
+            if (confirm("確定重置嗎？")) {
+                state.teams = initTeams();
+                updateCounts();
+                renderApp();
+            }
+        }
+
+        function updateCounts() {
+            const gC = {};
+            const tC = {};
+            state.teams.forEach(t => {
+                t.generals.forEach(g => {
+                    if (g && g.name) {
+                        const cleanName = g.name.split(' ')[0];
+                        gC[cleanName] = (gC[cleanName] || 0) + 1;
+                    }
+                });
+                [...t.tacticsRow1, ...t.tacticsRow2].forEach(tac => {
+                    if (tac) tC[tac] = (tC[tac] || 0) + 1;
+                });
+            });
+            state.counts = { gC, tC };
+        }
+
+        // --- View Logic ---
+
+        function switchPage(page) {
+            state.activePage = page;
+            renderApp();
+        }
+
+        function openModal(teamIndex, type, row, colIndex, currentValue) {
+            const team = state.teams[teamIndex];
+            const currentSoldierBook = type === 'soldierBook' ? team.generals[colIndex].soldierBook : null;
+            
+            // Reset modal internal state
+            state.modal = {
+                isOpen: true,
+                type,
+                teamIndex,
+                row,
+                colIndex,
+                currentValue,
+                currentSoldierBook,
+                activeTab: 'All',
+                searchTerm: '',
+                selectedItems: (type !== 'soldierBook' && currentValue) ? [currentValue] : [],
+                sbCategory: currentSoldierBook ? currentSoldierBook.category : null,
+                sbBig: currentSoldierBook ? currentSoldierBook.bigOption : null,
+                sbSmall: currentSoldierBook ? [currentSoldierBook.smallOption1, currentSoldierBook.smallOption2].filter(Boolean) : []
+            };
+            
+            // Fix scroll
+            const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+            document.body.style.paddingRight = `${scrollbarWidth}px`;
+            document.body.style.overflow = 'hidden';
+
+            renderModal();
+        }
+
+        function closeModal() {
+            state.modal.isOpen = false;
+            document.body.style.overflow = '';
+            document.body.style.paddingRight = '';
+            document.getElementById('modal-container').classList.add('hidden');
+        }
+
+        function handleModalSelect(result) {
+            const { teamIndex, row, colIndex, type } = state.modal;
+            const team = state.teams[teamIndex];
+
+            if (type === 'soldierBook') {
+                team.generals[colIndex].soldierBook = result || createEmptySoldierBook();
+            } else if (type === 'general') {
+                team.generals[colIndex].name = result ? result[0] : null;
+            } else if (type === 'tactic') {
+                if (!result) {
+                    if (row === 'tacticsRow1') team.tacticsRow1[colIndex] = null;
+                    else team.tacticsRow2[colIndex] = null;
+                } else if (result.length === 1) {
+                    if (row === 'tacticsRow1') team.tacticsRow1[colIndex] = result[0];
+                    else team.tacticsRow2[colIndex] = result[0];
+                } else {
+                    team.tacticsRow1[colIndex] = result[0];
+                    team.tacticsRow2[colIndex] = result[1] || null;
+                }
+            }
+
+            updateCounts();
+            closeModal();
+            renderApp();
+        }
+
+        // --- Modal Interaction Functions ---
+        function setModalTab(tab) {
+            state.modal.activeTab = tab;
+            renderModalContent();
+        }
+
+        function setModalSearch(val) {
+            state.modal.searchTerm = val;
+            renderModalContent();
+        }
+
+        function toggleModalItem(name) {
+            if (state.modal.type === 'general') {
+                handleModalSelect([name]);
+                return;
+            }
+            let prev = state.modal.selectedItems;
+            if (prev.includes(name)) {
+                prev = prev.filter(i => i !== name);
+            } else {
+                if (prev.length >= 2) prev = [prev[1], name];
+                else prev = [...prev, name];
+            }
+            state.modal.selectedItems = prev;
+            renderModalContent();
+        }
+
+        function confirmModalSelection() {
+            if (state.modal.type === 'soldierBook') {
+                const sel = {
+                    category: state.modal.sbCategory,
+                    bigOption: state.modal.sbBig,
+                    smallOption1: state.modal.sbSmall[0] || null,
+                    smallOption2: state.modal.sbSmall[1] || null
+                };
+                handleModalSelect(sel);
+            } else {
+                handleModalSelect(state.modal.selectedItems.length > 0 ? state.modal.selectedItems : null);
+            }
+        }
+
+        function clearModalSelection() {
+            handleModalSelect(null);
+        }
+
+        function handleSbCategorySelect(cat) {
+            if (cat === state.modal.sbCategory) return;
+            state.modal.sbCategory = cat;
+            state.modal.sbBig = null;
+            state.modal.sbSmall = [];
+            renderModalContent();
+        }
+
+        function handleSbBigSelect(opt) {
+            state.modal.sbBig = (state.modal.sbBig === opt) ? null : opt;
+            renderModalContent();
+        }
+
+        function handleSbSmallSelect(opt) {
+            let prev = state.modal.sbSmall;
+            if (prev.includes(opt)) prev = prev.filter(o => o !== opt);
+            else {
+                if (prev.length >= 2) prev = [prev[1], opt];
+                else prev = [...prev, opt];
+            }
+            state.modal.sbSmall = prev;
+            renderModalContent();
+        }
+
+        // --- General Attributes Update ---
+        function updateGeneral(teamIndex, colIndex, attr) {
+            const g = state.teams[teamIndex].generals[colIndex];
+            if (attr === 'isCollection') g.isCollection = !g.isCollection;
+            if (attr === 'isDynamic') g.isDynamic = !g.isDynamic;
+            // For redness, handled slightly differently in UI call
+            renderApp();
+        }
+        
+        function setRedness(teamIndex, colIndex, val) {
+            const g = state.teams[teamIndex].generals[colIndex];
+            g.redness = (g.redness === val) ? 0 : val;
+            renderApp();
+        }
+
+        // --- Render Functions ---
+
+        function renderApp() {
+            // Update Page Buttons
+            const btn1 = document.getElementById('btn-page-1');
+            const btn2 = document.getElementById('btn-page-2');
+            if (state.activePage === 1) {
+                btn1.className = "skew-x-[10deg] px-6 py-1.5 text-xs font-bold transition-all uppercase tracking-wider bg-cyber-cyan text-black shadow-[0_0_10px_rgba(0,243,255,0.6)]";
+                btn2.className = "skew-x-[10deg] px-6 py-1.5 text-xs font-bold transition-all uppercase tracking-wider text-cyber-dim hover:text-white";
+            } else {
+                btn1.className = "skew-x-[10deg] px-6 py-1.5 text-xs font-bold transition-all uppercase tracking-wider text-cyber-dim hover:text-white";
+                btn2.className = "skew-x-[10deg] px-6 py-1.5 text-xs font-bold transition-all uppercase tracking-wider bg-cyber-cyan text-black shadow-[0_0_10px_rgba(0,243,255,0.6)]";
+            }
+
+            // Render Grid
+            const grid = document.getElementById('team-grid');
+            const startIdx = (state.activePage - 1) * 6;
+            const visibleTeams = state.teams.slice(startIdx, startIdx + 6);
+            
+            grid.innerHTML = visibleTeams.map((team, idx) => {
+                const globalIdx = startIdx + idx;
+                return generateTeamCardHTML(team, globalIdx, state.counts);
+            }).join('');
+            
+            lucide.createIcons();
+        }
+
+        function extractCost(name) {
+            if (!name) return 0;
+            const match = name.match(/\d+$/);
+            return match ? parseInt(match[0], 10) : 0;
+        }
+
+        function generateTeamCardHTML(team, index, counts) {
+            const totalCost = team.generals.reduce((sum, g) => sum + extractCost(g.name), 0);
+            const totalRed = team.generals.reduce((sum, g) => sum + g.redness, 0);
+
+            // Helpers for styles
+            const getGStyle = (n, isDynamic) => {
+                if (!n) return 'bg-black/60 border-2 border-dashed border-cyber-dim text-cyber-dim hover:border-cyber-cyan hover:text-cyber-cyan hover:shadow-neon-cyan';
+                const cleanName = n.split(' ')[0];
+                const general = GENERALS_DATA.find(x => x.name.startsWith(cleanName));
+                const isDup = counts.gC[cleanName] > 1;
+                
+                let baseStyle = general ? FACTION_COLORS[general.faction] : 'bg-gray-800 text-white';
+                
+                if (isDynamic) {
+                    baseStyle = `bg-black border-2 border-cyber-yellow text-cyber-yellow shadow-neon-yellow animate-pulse-fast`;
+                } else if (isDup) {
+                    baseStyle = `bg-black border-2 border-cyber-red text-cyber-red animate-breathe-red`;
+                }
+                return baseStyle;
+            };
+
+            const getTStyle = (n) => {
+                if (!n) return 'bg-black/50 border border-dashed border-cyber-dim text-cyber-dim hover:border-cyber-text hover:text-white';
+                const t = TACTICS_DATA.find(x => x.name === n);
+                const isDup = n && counts.tC[n] > 1;
+                const baseColor = t ? TACTIC_COLORS[t.type] : 'bg-transparent text-white';
+                
+                let style = `${baseColor} shadow-[0_0_5px_rgba(0,0,0,0.8)]`;
+                if (isDup) style += ' border-cyber-red border-2 text-cyber-red animate-breathe-red';
+                return style;
+            };
+
+            // Generals HTML
+            const generalsHTML = team.generals.map((g, i) => {
+                const nameDisplay = g.name ? `
+                    <div class="absolute top-1 left-1 bg-black border border-current text-[9px] px-1 font-mono">C${extractCost(g.name)}</div>
+                    <span class="text-2xl tracking-tighter text-center leading-none z-10">${g.name.split(' ')[0]}</span>
+                    <div class="absolute inset-0 bg-[linear-gradient(rgba(0,0,0,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.1)_1px,transparent_1px)] bg-[size:4px_4px] opacity-20 pointer-events-none"></div>
+                ` : `
+                    <div class="flex flex-col items-center gap-1 opacity-50">
+                      <i data-lucide="plus" width="20"></i>
+                      <span class="text-[9px] tracking-widest uppercase">Empty</span>
+                    </div>
+                `;
+
+                // Controls
+                let controls = '';
+                if (g.name) {
+                    // Stars
+                    let starsHTML = '';
+                    for (let s = 1; s <= 5; s++) {
+                        const fillClass = s <= g.redness 
+                            ? 'fill-cyber-red text-cyber-red drop-shadow-[0_0_3px_#ff2a2a]' 
+                            : 'fill-cyber-dim/20 text-cyber-dim hover:text-cyber-red';
+                        starsHTML += `<button onclick="setRedness(${index}, ${i}, ${s})" class="focus:outline-none transition-transform active:scale-90"><i data-lucide="star" width="12" class="transition-colors ${fillClass}"></i></button>`;
+                    }
+
+                    controls = `
+                    <div class="flex flex-col gap-1.5 px-0.5 mt-1">
+                        <div class="flex gap-1 justify-center">
+                          <button onclick="updateGeneral(${index}, ${i}, 'isCollection')" class="w-6 h-6 border flex items-center justify-center transition-all ${g.isCollection ? 'bg-cyber-yellow text-black border-cyber-yellow shadow-neon-yellow' : 'bg-black text-cyber-dim border-cyber-border hover:border-white'}" title="典藏">
+                            <i data-lucide="disc" width="12"></i>
+                          </button>
+                          <button onclick="updateGeneral(${index}, ${i}, 'isDynamic')" class="w-6 h-6 border flex items-center justify-center transition-all ${g.isDynamic ? 'bg-cyber-pink text-black border-cyber-pink shadow-neon-pink' : 'bg-black text-cyber-dim border-cyber-border hover:border-white'}" title="動態">
+                            <i data-lucide="activity" width="12"></i>
+                          </button>
+                        </div>
+                        <div class="flex gap-0.5 justify-center py-1">
+                            ${starsHTML}
+                        </div>
+                    </div>`;
+                }
+
+                return `
+                <div class="flex flex-col gap-2">
+                    <button onclick="openModal(${index}, 'general', 'generals', ${i}, '${g.name || ''}')" 
+                        class="relative w-full aspect-[4/5] clip-path-polygon flex flex-col items-center justify-center font-black transition-all active:scale-95 ${getGStyle(g.name, g.isDynamic)}"
+                        style="clip-path: polygon(15% 0, 100% 0, 100% 85%, 85% 100%, 0 100%, 0 15%)">
+                        ${nameDisplay}
+                    </button>
+                    ${controls}
+                </div>`;
+            }).join('');
+
+            // Tactics HTML
+            const tacticsRow1HTML = team.tacticsRow1.map((tac, i) => `
+                <button onclick="openModal(${index}, 'tactic', 'tacticsRow1', ${i}, '${tac || ''}')" class="w-full h-12 flex items-center justify-center text-sm font-bold transition-all active:scale-95 px-2 text-center leading-none tracking-tight ${getTStyle(tac)} clip-path-btn" style="clip-path: polygon(10px 0, 100% 0, 100% 100%, 0 100%, 0 10px)">
+                    ${tac ? `<span>${tac}</span>` : '<i data-lucide="plus" width="16" class="opacity-20"></i>'}
+                </button>
+            `).join('');
+
+            const tacticsRow2HTML = team.tacticsRow2.map((tac, i) => `
+                <button onclick="openModal(${index}, 'tactic', 'tacticsRow2', ${i}, '${tac || ''}')" class="w-full h-12 flex items-center justify-center text-sm font-bold transition-all active:scale-95 px-2 text-center leading-none tracking-tight ${getTStyle(tac)} clip-path-btn" style="clip-path: polygon(0 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%)">
+                    ${tac ? `<span>${tac}</span>` : '<i data-lucide="plus" width="16" class="opacity-20"></i>'}
+                </button>
+            `).join('');
+
+            // Soldier Book HTML
+            const soldierBooksHTML = team.generals.map((g, i) => {
+                let content = '';
+                if (g.soldierBook?.category) {
+                    content = `
+                    <div class="flex flex-col gap-0.5 w-full">
+                       <div class="text-cyber-pink font-black text-[10px]">${g.soldierBook.category}</div>
+                       ${g.soldierBook.bigOption ? `<div class="text-cyber-cyan scale-90 truncate">${g.soldierBook.bigOption}</div>` : ''}
+                       <div class="flex justify-center gap-1 scale-75 text-cyber-dim opacity-100">
+                          ${g.soldierBook.smallOption1 ? `<span>${g.soldierBook.smallOption1}</span>` : ''}
+                          ${g.soldierBook.smallOption2 ? `<span>${g.soldierBook.smallOption2}</span>` : ''}
+                       </div>
+                    </div>`;
+                } else {
+                    content = `<div class="opacity-60 flex flex-col items-center"><span>兵書</span></div>`;
+                }
+                
+                const sbClass = g.soldierBook?.category ? 'bg-cyber-panel border-cyber-pink text-cyber-text' : 'bg-black/40 border-cyber-dim text-cyber-dim hover:border-white';
+
+                return `
+                <button onclick="openModal(${index}, 'soldierBook', 'generals', ${i}, null)" class="w-full flex flex-col items-center justify-center text-[9px] font-bold transition-all active:scale-95 py-1.5 px-0.5 text-center leading-none tracking-tight clip-path-btn border ${sbClass}" style="clip-path: polygon(0 0, 100% 0, 100% 100%, 10px 100%, 0 calc(100% - 10px))">
+                    ${content}
+                </button>`;
+            }).join('');
+
+            return `
+            <div class="cyber-card p-5 group transition-all hover:border-cyber-cyan/60 animate-slide-up">
+                <div class="absolute top-0 left-0 w-2 h-2 border-t-2 border-l-2 border-cyber-cyan"></div>
+                <div class="absolute top-0 right-0 w-2 h-2 border-t-2 border-r-2 border-cyber-cyan"></div>
+                <div class="absolute bottom-0 left-0 w-2 h-2 border-b-2 border-l-2 border-cyber-cyan"></div>
+                <div class="absolute bottom-0 right-0 w-2 h-2 border-b-2 border-r-2 border-cyber-cyan"></div>
+
+                <div class="flex items-center justify-between mb-6 border-b border-cyber-border pb-2">
+                    <div class="flex flex-col">
+                        <h2 class="text-cyber-cyan font-black text-xl tracking-tighter drop-shadow-[0_0_2px_#00f3ff]">${title}</h2>
+                        <div class="h-1 w-12 bg-cyber-pink mt-1 shadow-[0_0_5px_#ff00ff]"></div>
+                    </div>
+                    <div class="flex gap-2 font-mono text-[10px]">
+                        <div class="bg-black border border-cyber-cyan px-2 py-1 text-cyber-cyan flex items-center gap-1">
+                             COST <span class="text-sm font-bold">${totalCost}</span>
+                        </div>
+                        <div class="bg-black border border-cyber-red px-2 py-1 text-cyber-red flex items-center gap-1">
+                             RED <span class="text-sm font-bold">${totalRed}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-3 gap-4">
+                    ${generalsHTML}
+                    <div class="col-span-3 grid grid-cols-3 gap-2 mt-3 pt-3 border-t border-cyber-border">
+                        ${tacticsRow1HTML}
+                        ${tacticsRow2HTML}
+                    </div>
+                    <div class="col-span-3 grid grid-cols-3 gap-2 mt-1">
+                        ${soldierBooksHTML}
+                    </div>
+                </div>
+            </div>`;
+        }
+
+        // --- Render Modal ---
+        function renderModal() {
+            const container = document.getElementById('modal-container');
+            container.classList.remove('hidden');
+            const { type, activeTab, searchTerm, selectedItems, sbCategory, sbBig, sbSmall } = state.modal;
+
+            const icon = type === 'soldierBook' 
+                ? '<i data-lucide="book-open" width="18" class="text-cyber-yellow"></i>' 
+                : '<i data-lucide="terminal" width="18" class="text-cyber-pink"></i>';
+
+            const title = type === 'general' ? 'WARLORD' : type === 'tactic' ? 'TACTIC' : 'SOLDIER BOOK';
+            
+            let bufferInfo = '';
+            if (type === 'tactic' && selectedItems.length > 0) {
+                bufferInfo = `<span class="bg-cyber-cyan/20 text-cyber-cyan border border-cyber-cyan px-2 py-0.5 text-[10px] font-bold">BUFFER: ${selectedItems.length}/2</span>`;
+            } else if (type === 'soldierBook') {
+                bufferInfo = `<span class="bg-cyber-yellow/20 text-cyber-yellow border border-cyber-yellow px-2 py-0.5 text-[10px] font-bold">${sbCategory || '未選擇'}</span>`;
+            }
+
+            let confirmBtn = '';
+            if (type === 'tactic' || type === 'soldierBook') {
+                confirmBtn = `<button onclick="confirmModalSelection()" class="p-1.5 bg-cyber-cyan text-black hover:bg-white transition-colors shadow-[0_0_10px_#00f3ff]"><i data-lucide="check" width="18"></i></button>`;
+            }
+
+            // Tabs for General/Tactic
+            let tabsHTML = '';
+            if (type !== 'soldierBook') {
+                const tabsList = type === 'general' ? ['All', ...Object.values(Faction)] : ['All', ...Object.values(TacticType)];
+                tabsHTML = `
+                <div class="p-4 bg-black/40 border-b border-cyber-border space-y-3">
+                  <div class="relative group">
+                    <i data-lucide="search" width="16" class="absolute left-3 top-1/2 -translate-y-1/2 text-cyber-dim group-hover:text-cyber-cyan transition-colors"></i>
+                    <input type="text" placeholder="SEARCH_DATABASE..." oninput="setModalSearch(this.value)" value="${searchTerm}" class="w-full pl-10 pr-4 py-2 bg-black border border-cyber-border text-cyber-text font-mono text-sm focus:border-cyber-cyan focus:shadow-[0_0_10px_rgba(0,243,255,0.3)] outline-none transition-all placeholder:text-cyber-dim" autoFocus />
+                  </div>
+                  <div class="flex gap-2 overflow-x-auto no-scrollbar pb-1">
+                    ${tabsList.map(tab => `
+                        <button onclick="setModalTab('${tab}')" class="px-4 py-2 text-xs font-bold transition-all whitespace-nowrap uppercase tracking-wider border clip-path-btn ${activeTab === tab ? 'bg-cyber-cyan text-black border-cyber-cyan' : 'bg-transparent text-cyber-dim border-cyber-border hover:border-white hover:text-white'}" style="clip-path: polygon(10px 0, 100% 0, 100% 100%, 0 100%, 0 10px)">
+                            ${tab === 'All' ? 'ALL_DATA' : tab}
+                        </button>
+                    `).join('')}
+                  </div>
+                </div>`;
+            }
+
+            container.innerHTML = `
+            <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="closeModal()"></div>
+            <div class="relative w-full max-w-2xl bg-cyber-bg border border-cyber-cyan shadow-[0_0_30px_rgba(0,243,255,0.2)] flex flex-col max-h-[90vh] overflow-hidden clip-path-btn" style="clip-path: polygon(20px 0, 100% 0, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%, 0 20px)">
+                <div class="px-4 py-3 bg-cyber-panel border-b border-cyber-border flex items-center justify-between shrink-0">
+                  <div class="flex items-center gap-3">
+                     ${icon}
+                     <h3 class="text-lg font-bold text-cyber-text tracking-widest uppercase">
+                         SELECT // <span class="text-cyber-cyan">${title}</span>
+                     </h3>
+                     ${bufferInfo}
+                  </div>
+                  <div class="flex items-center gap-2">
+                    ${confirmBtn}
+                    <button onclick="closeModal()" class="p-1.5 bg-transparent border border-cyber-red text-cyber-red hover:bg-cyber-red hover:text-black transition-colors"><i data-lucide="x" width="18"></i></button>
+                  </div>
+                </div>
+                ${tabsHTML}
+                <div id="modal-content-body" class="flex-1 overflow-y-auto ${type === 'soldierBook' ? 'p-6 space-y-6' : 'p-4'} bg-[linear-gradient(rgba(0,243,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(0,243,255,0.03)_1px,transparent_1px)] bg-[size:20px_20px]">
+                    <!-- Dynamic Content -->
+                </div>
+            </div>`;
+            
+            renderModalContent();
+        }
+
+        function renderModalContent() {
+            const body = document.getElementById('modal-content-body');
+            const { type, activeTab, searchTerm, selectedItems, sbCategory, sbBig, sbSmall } = state.modal;
+
+            if (type !== 'soldierBook') {
+                // Filter Items
+                const items = type === 'general' 
+                  ? GENERALS_DATA.map(g => ({ name: g.name, category: g.faction, color: FACTION_COLORS[g.faction] }))
+                  : TACTICS_DATA.map(t => ({ name: t.name, category: t.type, color: TACTIC_COLORS[t.type] }));
+                
+                let filtered = items;
+                if (activeTab !== 'All') filtered = filtered.filter(i => i.category === activeTab);
+                if (searchTerm) filtered = filtered.filter(i => i.name.toLowerCase().includes(searchTerm.toLowerCase()));
+
+                const clearBtn = selectedItems.length > 0 ? `
+                    <button onclick="clearModalSelection()" class="w-full py-2 bg-cyber-red/10 text-cyber-red border border-cyber-red hover:bg-cyber-red hover:text-black mb-4 flex items-center justify-center gap-2 font-bold text-xs uppercase tracking-widest transition-all">
+                      <i data-lucide="trash-2" width="14"></i> CLEAR SELECTION
+                    </button>` : '';
+                
+                const grid = filtered.map(item => {
+                    const isSel = selectedItems.includes(item.name);
+                    const borderClass = isSel ? 'border-cyber-cyan shadow-[0_0_10px_rgba(0,243,255,0.4)]' : 'border-cyber-border hover:border-white';
+                    const textClass = isSel ? 'text-cyber-cyan' : 'text-cyber-dim';
+                    
+                    // Simple regex to remove color utility classes for the inner box to just use the border color logic or similar
+                    // Using the pre-defined color constants directly
+                    let innerColorClass = item.color.replace('border-2', 'border').replace(/shadow-\[.*?\]/g, '');
+                    
+                    return `
+                    <button onclick="toggleModalItem('${item.name}')" class="group flex flex-col items-center p-2 bg-black/60 border transition-all active:scale-95 hover:shadow-[0_0_10px_rgba(255,255,255,0.2)] ${borderClass}">
+                        <div class="w-full aspect-square mb-2 flex items-center justify-center font-black text-xs text-center leading-tight p-1 ${innerColorClass} bg-opacity-20">
+                          ${item.name.split(' ')[0]}
+                        </div>
+                        <span class="text-[10px] font-bold truncate w-full text-center font-mono group-hover:text-white ${textClass}">${item.name}</span>
+                    </button>`;
+                }).join('');
+
+                body.innerHTML = `${clearBtn}<div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">${grid}</div>`;
+            } else {
+                // Soldier Book Render
+                const categories = Object.keys(SOLDIER_BOOK_DATA).map(cat => `
+                    <button onclick="handleSbCategorySelect('${cat}')" class="py-3 px-2 border text-sm font-bold transition-all ${sbCategory === cat ? 'bg-cyber-yellow text-black border-cyber-yellow shadow-neon-yellow' : 'bg-transparent text-cyber-dim border-cyber-border hover:text-white hover:border-white'}">
+                      ${cat}
+                    </button>
+                `).join('');
+
+                let content = `
+                <div class="mb-6">
+                    <h4 class="text-cyber-yellow font-bold mb-3 border-l-4 border-cyber-yellow pl-2 uppercase tracking-wider">軍事類別 (CLASS)</h4>
+                    <div class="grid grid-cols-3 gap-2">${categories}</div>
+                </div>`;
+
+                if (sbCategory && SOLDIER_BOOK_DATA[sbCategory]) {
+                    const data = SOLDIER_BOOK_DATA[sbCategory];
+                    
+                    const bigOpts = data.big.map(opt => `
+                        <button onclick="handleSbBigSelect('${opt}')" class="flex items-center justify-between p-3 border text-left transition-all ${sbBig === opt ? 'bg-cyber-cyan/20 border-cyber-cyan text-cyber-cyan shadow-[0_0_10px_rgba(0,243,255,0.3)]' : 'bg-transparent border-cyber-border text-cyber-dim hover:border-white hover:text-white'}">
+                          <span class="text-sm font-bold">${opt}</span>
+                          ${sbBig === opt ? '<i data-lucide="check" width="16" class="text-cyber-cyan"></i>' : ''}
+                        </button>
+                    `).join('');
+
+                    const smallOpts = data.small.map(opt => {
+                        const isSel = sbSmall.includes(opt);
+                        return `
+                        <button onclick="handleSbSmallSelect('${opt}')" class="p-2 border text-sm font-bold transition-all ${isSel ? 'bg-cyber-pink/20 border-cyber-pink text-cyber-pink shadow-[0_0_10px_rgba(255,0,255,0.3)]' : 'bg-transparent border-cyber-border text-cyber-dim hover:border-white hover:text-white'}">
+                            ${opt}
+                        </button>`;
+                    }).join('');
+
+                    content += `
+                    <div class="space-y-6">
+                        <div>
+                           <h4 class="text-cyber-cyan font-bold mb-3 border-l-4 border-cyber-cyan pl-2 uppercase tracking-wider">核心 (BIG) <span class="text-xs text-cyber-dim ml-2">Select 1</span></h4>
+                           <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">${bigOpts}</div>
+                        </div>
+                        <div>
+                           <h4 class="text-cyber-pink font-bold mb-3 border-l-4 border-cyber-pink pl-2 uppercase tracking-wider">進階 (SMALL) <span class="text-xs text-cyber-dim ml-2">Select 2</span></h4>
+                           <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">${smallOpts}</div>
+                        </div>
+                    </div>`;
+                } else {
+                    content += `<div class="text-center py-10 text-cyber-dim opacity-50 font-mono">// WAITING FOR INPUT...</div>`;
+                }
+
+                content += `
+                <div class="mt-8 pt-4 border-t border-cyber-border">
+                   <button onclick="clearModalSelection()" class="w-full py-2 text-cyber-red text-sm font-bold hover:bg-cyber-red/10 border border-transparent hover:border-cyber-red transition-colors uppercase tracking-widest">
+                      RESET CONFIGURATION
+                   </button>
+                </div>`;
+                
+                body.innerHTML = content;
+            }
+            lucide.createIcons();
+        }
+
+        // --- Init ---
+        loadState();
+        renderApp();
+
+    </script>
 </body>
 </html>
