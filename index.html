@@ -191,28 +191,28 @@
 
       const SOLDIER_BOOK_DATA = {
         '作戰': {
-          big: ['奇正相生', '勝而益強', '不勇則死'],
-          small: ['武略', '勝戰', '執銳', '分險', '藏刀']
+          big: ['蠻勇非勇','一鼓作氣','奇正相生', '勝而益強', '不勇則死'],
+          small: ['武略', '勝戰', '執銳', '分險','文韜', '藏刀']
         },
         '虛實': {
-          big: ['順應天時', '以治擊亂', '攻其不備'],
-          small: ['鬼謀', '妙算', '神機', '將威', '佔卜']
+          big: ['後發先至','大謀不謀','謀定後動','順應天時', '以治擊亂', '攻其不備'],
+          small: ['鬼謀', '妙算', '神機', '將威', '合變','佔卜']
         },
         '軍形': {
-          big: ['嚴陣以待', '惜兵愛民', '避其銳氣'],
+          big: ['三裡而還','嚴陣以待', '惜兵愛民', '避其銳氣'],
           small: ['守勢', '靜心', '防備', '鐵甲', '剛柔']
         },
         '九變': {
-          big: ['分疾', '臨敵不亂', '無功而勵'],
-          small: ['虛掩', '厲軍', '救主', '掩虛', '速戰']
+          big: ['援其必攻','分疾而戰', '臨敵不亂', '無功而勵'],
+          small: ['虛掩', '馳援','厲軍', '救主', '百戰', '速戰']
         },
-        '軍爭': {
-          big: ['分疾2', '大謀不謀', '三裡而還'],
-          small: ['虛掩2', '盤珊', '疾行', '相持', '守道']
+        '始計': {
+          big: ['樂善好施','洞若觀火','枕戈坐甲', '三軍之眾', '應機立斷','神清氣淨'],
+          small: ['久戰', '銳利', '歸心', '錘鍊','遠謀', '統軍']
         },
-        '形機': {
-          big: ['分疾3', '權變', '黃天'],
-          small: ['虛掩3', '運籌', '妙計', '應變', '神算']
+        '用間': {
+          big: ['審時度勢','出奇制勝', '兵行詭道', '以直報怨','以退為進'],
+          small: ['開闔', '持重', '精準', '善戰', '分利']
         }
       };
 
@@ -224,12 +224,12 @@
       };
 
       const TACTIC_COLORS = {
-        [TacticType.Command]: 'bg-zinc-700 border border-t_command text-t_command brightness-125',
-        [TacticType.Passive]: 'bg-zinc-700 border border-t_passive text-t_passive brightness-125',
-        [TacticType.Formation]: 'bg-zinc-700 border border-t_formation text-t_formation brightness-125',
-        [TacticType.Assault]: 'bg-zinc-700 border border-t_assault text-t_assault brightness-125',
-        [TacticType.Troop]: 'bg-zinc-700 border border-t_troop text-t_troop brightness-125',
-        [TacticType.Active]: 'bg-zinc-700 border border-t_active text-t_active brightness-125',
+        [TacticType.Command]: 'bg-transparent border border-t_command text-t_command',
+        [TacticType.Passive]: 'bg-transparent border border-t_passive text-t_passive',
+        [TacticType.Formation]: 'bg-transparent border border-t_formation text-t_formation',
+        [TacticType.Assault]: 'bg-transparent border border-t_assault text-t_assault',
+        [TacticType.Troop]: 'bg-transparent border border-t_troop text-t_troop',
+        [TacticType.Active]: 'bg-transparent border border-t_active text-t_active',
       };
 
       const STORAGE_KEY = 'tk_builder_stable_vfinal';
@@ -367,7 +367,19 @@
       function updateGeneral(teamIndex, colIndex, updates) {
         const g = appState.teams[teamIndex].generals[colIndex];
         Object.assign(g, updates);
-        renderApp();
+        
+        // Optimized: Only re-render specific slot instead of full app
+        const counts = getCounts();
+        const newHtml = renderGeneralSlot(g, appState.teams[teamIndex].id, colIndex, counts.gC, teamIndex);
+        
+        const el = document.getElementById(`gen-slot-${teamIndex}-${colIndex}`);
+        if (el) {
+            el.outerHTML = newHtml;
+            // Initialize lucide icons for the new content
+            if (window.lucide) lucide.createIcons();
+        } else {
+            renderApp();
+        }
       }
 
       // --- Modal Logic ---
@@ -446,13 +458,13 @@
                     btn.classList.add('border-cyber-cyan', 'shadow-[0_0_10px_rgba(0,243,255,0.4)]');
                     if(textSpan) {
                         textSpan.classList.remove('text-cyber-dim');
-                        textSpan.classList.add('text-cyber-cyan', 'group-hover:text-white');
+                        textSpan.classList.add('text-cyber-cyan');
                     }
                 } else {
                     btn.classList.remove('border-cyber-cyan', 'shadow-[0_0_10px_rgba(0,243,255,0.4)]');
                     btn.classList.add('border-cyber-border', 'hover:border-white');
                     if(textSpan) {
-                        textSpan.classList.remove('text-cyber-cyan', 'group-hover:text-white');
+                        textSpan.classList.remove('text-cyber-cyan');
                         textSpan.classList.add('text-cyber-dim');
                     }
                 }
@@ -680,7 +692,6 @@
               starsHtml = '<div class="flex gap-0.5 justify-center py-1">';
               for (let s = 1; s <= 5; s++) {
                   const fillClass = s <= g.redness ? 'fill-cyber-red text-cyber-red drop-shadow-[0_0_3px_#ff2a2a]' : 'fill-cyber-dim/20 text-cyber-dim hover:text-cyber-red';
-                  // Changed size="12" to width="10" height="10" as requested (approx 2x smaller than default 24px)
                   starsHtml += `<button onclick="updateGeneral(${flatTeamIndex}, ${colIndex}, { redness: ${g.redness === s ? 0 : s} })" class="focus:outline-none transition-transform active:scale-90"><i data-lucide="star" width="10" height="10" class="transition-colors ${fillClass}"></i></button>`;
               }
               starsHtml += '</div>';
@@ -709,7 +720,7 @@
           ` : '';
 
           return `
-            <div class="flex flex-col gap-2">
+            <div id="gen-slot-${flatTeamIndex}-${colIndex}" class="flex flex-col gap-2">
                 <button 
                     onclick="openModal(${flatTeamIndex}, 'general', 'generals', ${colIndex}, '${g.name || ''}')"
                     class="relative w-full aspect-[4/5] clip-path-polygon flex flex-col items-center justify-center font-black transition-all active:scale-95 ${styleClass}"
@@ -741,7 +752,7 @@
           return `
             <button 
                 onclick="openModal(${flatTeamIndex}, 'tactic', '${rowName}', ${colIndex}, '${name || ''}')"
-                class="w-full h-10 flex items-center justify-center text-[10px] font-bold transition-all active:scale-95 px-1 text-center leading-none tracking-tight ${styleClass} clip-path-btn"
+                class="w-full h-10 flex items-center justify-center text-sm font-bold transition-all active:scale-95 px-1 text-center leading-none tracking-tight ${styleClass} clip-path-btn"
                 style="clip-path: ${clipPath}"
             >
                 ${name ? `<span>${name}</span>` : `<i data-lucide="plus" width="14" height="14" class="opacity-20"></i>`}
