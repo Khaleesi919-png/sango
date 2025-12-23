@@ -176,19 +176,19 @@
               
               <div class="flex flex-row items-center gap-4">
                 <div class="flex p-1 bg-black/50 border border-cyber-dim rounded-none skew-x-[-10deg]">
-                  <button onclick="switchPage(1)" id="btn-page-1" class="skew-x-[10deg] px-6 py-1.5 text-xs font-bold transition-all uppercase tracking-wider bg-cyber-cyan text-black shadow-[0_0_10px_rgba(0,243,255,0.6)]">
+                  <button onclick="window.app.switchPage(1)" id="btn-page-1" class="skew-x-[10deg] px-6 py-1.5 text-xs font-bold transition-all uppercase tracking-wider bg-cyber-cyan text-black shadow-[0_0_10px_rgba(0,243,255,0.6)]">
                      Units 1-6
                   </button>
-                  <button onclick="switchPage(2)" id="btn-page-2" class="skew-x-[10deg] px-6 py-1.5 text-xs font-bold transition-all uppercase tracking-wider text-cyber-dim hover:text-white">
+                  <button onclick="window.app.switchPage(2)" id="btn-page-2" class="skew-x-[10deg] px-6 py-1.5 text-xs font-bold transition-all uppercase tracking-wider text-cyber-dim hover:text-white">
                      Units 7-12
                   </button>
                 </div>
                 <div class="flex gap-3">
-                  <button onclick="saveTeams()" class="cyber-btn bg-cyber-card border border-cyber-cyan text-cyber-cyan px-5 py-2 hover:bg-cyber-cyan hover:text-black flex items-center gap-2 font-bold text-xs uppercase tracking-widest shadow-[0_0_5px_rgba(0,243,255,0.3)]">
-                    <i data-lucide="save" size="14"></i> Save
+                  <button onclick="window.app.saveTeams()" class="px-5 py-2 flex items-center gap-2 font-bold text-xs uppercase tracking-widest bg-cyber-card border border-cyber-cyan text-cyber-cyan hover:bg-cyber-cyan hover:text-black shadow-[0_0_5px_rgba(0,243,255,0.3)] transition-all">
+                    <i data-lucide="save" width="14"></i> Save
                   </button>
-                  <button onclick="resetTeams()" class="cyber-btn bg-cyber-card border border-cyber-red text-cyber-red px-3 py-2 hover:bg-cyber-red hover:text-black flex items-center gap-2 font-bold text-xs uppercase tracking-widest shadow-[0_0_5px_rgba(255,42,42,0.3)]">
-                    <i data-lucide="rotate-ccw" size="14"></i>
+                  <button onclick="window.app.resetTeams()" class="px-3 py-2 flex items-center gap-2 font-bold text-xs uppercase tracking-widest bg-cyber-card border border-cyber-red text-cyber-red hover:bg-cyber-red hover:text-black shadow-[0_0_5px_rgba(255,42,42,0.3)] transition-all">
+                    <i data-lucide="rotate-ccw" width="14"></i>
                   </button>
                 </div>
               </div>
@@ -197,6 +197,7 @@
 
         <main id="team-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mt-4">
             <!-- Team Cards will be injected here -->
+            <div class="text-cyber-dim text-center col-span-full py-10">Loading System...</div>
         </main>
     </div>
 
@@ -207,6 +208,7 @@
 
     <!-- Logic -->
     <script>
+    (function() {
         // --- Constants & Types Data ---
         const Faction = { Wei: '魏', Shu: '蜀', Wu: '吳', Qun: '群' };
         const TacticType = { Command: '指揮', Passive: '被動', Formation: '陣法', Assault: '突擊', Troop: '兵種', Active: '主動' };
@@ -247,48 +249,29 @@
             { type: TacticType.Active, name: '偽書相間' }, { type: TacticType.Active, name: '挾勢弄權' }, { type: TacticType.Active, name: '奪魂挾魄' }, { type: TacticType.Active, name: '轉.奪魂武' }, { type: TacticType.Active, name: '草船借箭' }, { type: TacticType.Active, name: '刮骨療傷' }, { type: TacticType.Active, name: '轉.刮骨統' },{ type: TacticType.Active, name: '嬰城自守' }, { type: TacticType.Active, name: '坐守孤城' }, { type: TacticType.Active, name: '杯蛇鬼車' }, { type: TacticType.Active, name: '竭力佐謀' }, { type: TacticType.Active, name: '因利制權' }, { type: TacticType.Active, name: '誘敵深入' }, { type: TacticType.Active, name: '威謀靡亢' }, { type: TacticType.Active, name: '挫志怒襲' }, { type: TacticType.Active, name: '乘敵不虞' }, { type: TacticType.Active, name: '傾國傾城' }, { type: TacticType.Active, name: '益其金鼓' }, { type: TacticType.Active, name: '定謀貴決' }, { type: TacticType.Active, name: '結盟' }, { type: TacticType.Active, name: '臨機制勝' }, { type: TacticType.Active, name: '熯天熾熱' }, { type: TacticType.Active, name: '火熾原燎' }, { type: TacticType.Active, name: '風助火勢' }, { type: TacticType.Active, name: '智計' }, { type: TacticType.Active, name: '兵鋒' }, { type: TacticType.Active, name: '上兵伐謀' }, { type: TacticType.Active, name: '破軍威勝' }, { type: TacticType.Active, name: '掣刀斫敵' }, { type: TacticType.Active, name: '臥薪嘗膽' }, { type: TacticType.Active, name: '縱兵劫掠' }, { type: TacticType.Active, name: '橫掃千軍' }, { type: TacticType.Active, name: '轉.橫掃智' },  { type: TacticType.Active, name: '疾風驟雨' },{ type: TacticType.Active, name: '焚輜營壘' }, { type: TacticType.Active, name: '萬軍奪帥' }, { type: TacticType.Active, name: '靈機一動' }, { type: TacticType.Active, name: '謬力同心' }, { type: TacticType.Active, name: '強攻' }, { type: TacticType.Active, name: '淨化' }, { type: TacticType.Active, name: '驅散' }, { type: TacticType.Active, name: '魯莽' }, { type: TacticType.Active, name: '運籌決算' }, { type: TacticType.Active, name: '屠几上肉' }, { type: TacticType.Active, name: '焰逐風飛' }, { type: TacticType.Active, name: '形機軍略' }, { type: TacticType.Active, name: '落鳳' }, { type: TacticType.Active, name: '避實擊虛' }, { type: TacticType.Active, name: '輕勇飛燕' }, { type: TacticType.Active, name: '擊其惰歸' }, { type: TacticType.Active, name: '決水潰城' }, { type: TacticType.Active, name: '絕其汲道' }, { type: TacticType.Active, name: '據水斷橋' }, { type: TacticType.Active, name: '機略縱橫' }, { type: TacticType.Active, name: '見機行事' }, { type: TacticType.Active, name: '聲東擊西' }, { type: TacticType.Active, name: '矢志不移' }, { type: TacticType.Active, name: '黃天泰平' }, { type: TacticType.Active, name: '瞋目橫矛' }, { type: TacticType.Active, name: '料事如神' }, { type: TacticType.Active, name: '落雷' }, { type: TacticType.Active, name: '驍勇善戰' }, { type: TacticType.Active, name: '一力拒守' }, { type: TacticType.Active, name: '守而必固' }, { type: TacticType.Active, name: '唇槍舌戰' }, { type: TacticType.Active, name: '舌戰群儒' }, { type: TacticType.Active, name: '獨行赴斗' }, { type: TacticType.Active, name: '四面楚歌' }, { type: TacticType.Active, name: '沉沙決水' }, { type: TacticType.Active, name: '風聲鶴唳' }, { type: TacticType.Active, name: '萬箭齊發' }, { type: TacticType.Active, name: '所向批靡' }, { type: TacticType.Active, name: '破陣摧堅' }
         ];
 
-        
         const SOLDIER_BOOK_DATA = {
-        '作戰': {big: ['蠻勇非勇','一鼓作氣','奇正相生', '勝而益強', '不勇則死'],
-          small: ['武略', '勝戰', '執銳', '分險','文韜', '藏刀']
-        },
-        '虛實': {
-          big: ['後發先至','大謀不謀','謀定後動','順應天時', '以治擊亂', '攻其不備'],
-          small: ['鬼謀', '妙算', '神機', '將威', '合變','佔卜']
-        },
-        '軍形': {
-          big: ['三裡而還','嚴陣以待', '惜兵愛民', '避其銳氣'],
-          small: ['守勢', '靜心', '防備', '鐵甲', '剛柔']
-        },
-        '九變': {
-          big: ['援其必攻','分疾而戰', '臨敵不亂', '無功而勵'],
-          small: ['虛掩', '馳援','厲軍', '救主', '百戰', '速戰']
-        },
-        '始計': {
-          big: ['樂善好施','洞若觀火','枕戈坐甲', '三軍之眾', '應機立斷','神清氣淨'],
-          small: ['久戰', '銳利', '歸心', '錘鍊','遠謀', '統軍']
-        },
-        '用間': {
-          big: ['審時度勢','出奇制勝', '兵行詭道', '以直報怨','以退為進'],
-          small: ['開闔', '持重', '精準', '善戰', '分利']
-        }
+            '作戰': { big: ['奇正相生', '勝而益強', '不勇則死'], small: ['武略', '勝戰', '執銳', '分險', '藏刀'] },
+            '虛實': { big: ['順應天時', '以治擊亂', '攻其不備'], small: ['鬼謀', '妙算', '神機', '將威', '佔卜'] },
+            '軍形': { big: ['嚴陣以待', '惜兵愛民', '避其銳氣'], small: ['守勢', '靜心', '防備', '鐵甲', '剛柔'] },
+            '九變': { big: ['分疾', '臨敵不亂', '無功而勵'], small: ['虛掩', '厲軍', '救主', '掩虛', '速戰'] },
+            '軍爭': { big: ['分疾2', '大謀不謀', '三裡而還'], small: ['虛掩2', '盤珊', '疾行', '相持', '守道'] },
+            '形機': { big: ['分疾3', '權變', '黃天'], small: ['虛掩3', '運籌', '妙計', '應變', '神算'] }
         };
 
         const STORAGE_KEY = 'tk_builder_stable_vfinal';
 
         // --- State Management ---
-        let state = {
+        window.appState = {
             teams: [],
             activePage: 1,
             modal: {
                 isOpen: false,
-                type: null, // 'general' | 'tactic' | 'soldierBook'
+                type: null,
                 teamIndex: null,
                 colIndex: null,
-                row: null, // 'generals' | 'tacticsRow1' | 'tacticsRow2'
+                row: null,
                 currentValue: null,
                 currentSoldierBook: null,
-                // Modal internal state
                 activeTab: 'All',
                 searchTerm: '',
                 selectedItems: [],
@@ -316,575 +299,554 @@
             }));
         }
 
-        function loadState() {
-            try {
-                const saved = localStorage.getItem(STORAGE_KEY);
-                if (saved) {
-                    const parsed = JSON.parse(saved);
-                    if (Array.isArray(parsed) && parsed.length === 12) {
-                        state.teams = parsed.map(team => ({
-                            ...team,
-                            generals: team.generals.map(g => ({
-                                ...g,
-                                soldierBook: g.soldierBook || createEmptySoldierBook()
-                            }))
-                        }));
+        // --- Core Functions ---
+        const app = {
+             loadState: function() {
+                try {
+                    const saved = localStorage.getItem(STORAGE_KEY);
+                    if (saved) {
+                        const parsed = JSON.parse(saved);
+                        if (Array.isArray(parsed) && parsed.length === 12) {
+                            window.appState.teams = parsed.map(team => ({
+                                ...team,
+                                generals: team.generals.map(g => ({
+                                    ...g,
+                                    soldierBook: g.soldierBook || createEmptySoldierBook()
+                                }))
+                            }));
+                        } else {
+                            window.appState.teams = initTeams();
+                        }
                     } else {
-                        state.teams = initTeams();
+                        window.appState.teams = initTeams();
                     }
-                } else {
-                    state.teams = initTeams();
+                } catch (e) {
+                    console.error("Load failed", e);
+                    window.appState.teams = initTeams();
                 }
-            } catch (e) {
-                console.error("Load failed", e);
-                state.teams = initTeams();
-            }
-            updateCounts();
-        }
+                app.updateCounts();
+            },
 
-        function saveTeams() {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(state.teams));
-            alert("配將方案已儲存！");
-        }
+            saveTeams: function() {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(window.appState.teams));
+                alert("配將方案已儲存！");
+            },
 
-        function resetTeams() {
-            if (confirm("確定重置嗎？")) {
-                state.teams = initTeams();
-                updateCounts();
-                renderApp();
-            }
-        }
-
-        function updateCounts() {
-            const gC = {};
-            const tC = {};
-            state.teams.forEach(t => {
-                t.generals.forEach(g => {
-                    if (g && g.name) {
-                        const cleanName = g.name.split(' ')[0];
-                        gC[cleanName] = (gC[cleanName] || 0) + 1;
-                    }
-                });
-                [...t.tacticsRow1, ...t.tacticsRow2].forEach(tac => {
-                    if (tac) tC[tac] = (tC[tac] || 0) + 1;
-                });
-            });
-            state.counts = { gC, tC };
-        }
-
-        // --- View Logic ---
-
-        function switchPage(page) {
-            state.activePage = page;
-            renderApp();
-        }
-
-        function openModal(teamIndex, type, row, colIndex, currentValue) {
-            const team = state.teams[teamIndex];
-            const currentSoldierBook = type === 'soldierBook' ? team.generals[colIndex].soldierBook : null;
-            
-            // Reset modal internal state
-            state.modal = {
-                isOpen: true,
-                type,
-                teamIndex,
-                row,
-                colIndex,
-                currentValue,
-                currentSoldierBook,
-                activeTab: 'All',
-                searchTerm: '',
-                selectedItems: (type !== 'soldierBook' && currentValue) ? [currentValue] : [],
-                sbCategory: currentSoldierBook ? currentSoldierBook.category : null,
-                sbBig: currentSoldierBook ? currentSoldierBook.bigOption : null,
-                sbSmall: currentSoldierBook ? [currentSoldierBook.smallOption1, currentSoldierBook.smallOption2].filter(Boolean) : []
-            };
-            
-            // Fix scroll
-            const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
-            document.body.style.paddingRight = `${scrollbarWidth}px`;
-            document.body.style.overflow = 'hidden';
-
-            renderModal();
-        }
-
-        function closeModal() {
-            state.modal.isOpen = false;
-            document.body.style.overflow = '';
-            document.body.style.paddingRight = '';
-            document.getElementById('modal-container').classList.add('hidden');
-        }
-
-        function handleModalSelect(result) {
-            const { teamIndex, row, colIndex, type } = state.modal;
-            const team = state.teams[teamIndex];
-
-            if (type === 'soldierBook') {
-                team.generals[colIndex].soldierBook = result || createEmptySoldierBook();
-            } else if (type === 'general') {
-                team.generals[colIndex].name = result ? result[0] : null;
-            } else if (type === 'tactic') {
-                if (!result) {
-                    if (row === 'tacticsRow1') team.tacticsRow1[colIndex] = null;
-                    else team.tacticsRow2[colIndex] = null;
-                } else if (result.length === 1) {
-                    if (row === 'tacticsRow1') team.tacticsRow1[colIndex] = result[0];
-                    else team.tacticsRow2[colIndex] = result[0];
-                } else {
-                    team.tacticsRow1[colIndex] = result[0];
-                    team.tacticsRow2[colIndex] = result[1] || null;
+            resetTeams: function() {
+                if (confirm("確定重置嗎？")) {
+                    window.appState.teams = initTeams();
+                    app.updateCounts();
+                    app.render();
                 }
-            }
+            },
 
-            updateCounts();
-            closeModal();
-            renderApp();
-        }
+            updateCounts: function() {
+                const gC = {};
+                const tC = {};
+                window.appState.teams.forEach(t => {
+                    t.generals.forEach(g => {
+                        if (g && g.name) {
+                            const cleanName = g.name.split(' ')[0];
+                            gC[cleanName] = (gC[cleanName] || 0) + 1;
+                        }
+                    });
+                    [...t.tacticsRow1, ...t.tacticsRow2].forEach(tac => {
+                        if (tac) tC[tac] = (tC[tac] || 0) + 1;
+                    });
+                });
+                window.appState.counts = { gC, tC };
+            },
 
-        // --- Modal Interaction Functions ---
-        function setModalTab(tab) {
-            state.modal.activeTab = tab;
-            renderModalContent();
-        }
+            switchPage: function(page) {
+                window.appState.activePage = page;
+                app.render();
+            },
 
-        function setModalSearch(val) {
-            state.modal.searchTerm = val;
-            renderModalContent();
-        }
-
-        function toggleModalItem(name) {
-            if (state.modal.type === 'general') {
-                handleModalSelect([name]);
-                return;
-            }
-            let prev = state.modal.selectedItems;
-            if (prev.includes(name)) {
-                prev = prev.filter(i => i !== name);
-            } else {
-                if (prev.length >= 2) prev = [prev[1], name];
-                else prev = [...prev, name];
-            }
-            state.modal.selectedItems = prev;
-            renderModalContent();
-        }
-
-        function confirmModalSelection() {
-            if (state.modal.type === 'soldierBook') {
-                const sel = {
-                    category: state.modal.sbCategory,
-                    bigOption: state.modal.sbBig,
-                    smallOption1: state.modal.sbSmall[0] || null,
-                    smallOption2: state.modal.sbSmall[1] || null
+            openModal: function(teamIndex, type, row, colIndex, currentValue) {
+                const team = window.appState.teams[teamIndex];
+                const currentSoldierBook = type === 'soldierBook' ? team.generals[colIndex].soldierBook : null;
+                
+                window.appState.modal = {
+                    isOpen: true,
+                    type,
+                    teamIndex,
+                    row,
+                    colIndex,
+                    currentValue,
+                    currentSoldierBook,
+                    activeTab: 'All',
+                    searchTerm: '',
+                    selectedItems: (type !== 'soldierBook' && currentValue) ? [currentValue] : [],
+                    sbCategory: currentSoldierBook ? currentSoldierBook.category : null,
+                    sbBig: currentSoldierBook ? currentSoldierBook.bigOption : null,
+                    sbSmall: currentSoldierBook ? [currentSoldierBook.smallOption1, currentSoldierBook.smallOption2].filter(Boolean) : []
                 };
-                handleModalSelect(sel);
-            } else {
-                handleModalSelect(state.modal.selectedItems.length > 0 ? state.modal.selectedItems : null);
-            }
-        }
-
-        function clearModalSelection() {
-            handleModalSelect(null);
-        }
-
-        function handleSbCategorySelect(cat) {
-            if (cat === state.modal.sbCategory) return;
-            state.modal.sbCategory = cat;
-            state.modal.sbBig = null;
-            state.modal.sbSmall = [];
-            renderModalContent();
-        }
-
-        function handleSbBigSelect(opt) {
-            state.modal.sbBig = (state.modal.sbBig === opt) ? null : opt;
-            renderModalContent();
-        }
-
-        function handleSbSmallSelect(opt) {
-            let prev = state.modal.sbSmall;
-            if (prev.includes(opt)) prev = prev.filter(o => o !== opt);
-            else {
-                if (prev.length >= 2) prev = [prev[1], opt];
-                else prev = [...prev, opt];
-            }
-            state.modal.sbSmall = prev;
-            renderModalContent();
-        }
-
-        // --- General Attributes Update ---
-        function updateGeneral(teamIndex, colIndex, attr) {
-            const g = state.teams[teamIndex].generals[colIndex];
-            if (attr === 'isCollection') g.isCollection = !g.isCollection;
-            if (attr === 'isDynamic') g.isDynamic = !g.isDynamic;
-            // For redness, handled slightly differently in UI call
-            renderApp();
-        }
-        
-        function setRedness(teamIndex, colIndex, val) {
-            const g = state.teams[teamIndex].generals[colIndex];
-            g.redness = (g.redness === val) ? 0 : val;
-            renderApp();
-        }
-
-        // --- Render Functions ---
-
-        function renderApp() {
-            // Update Page Buttons
-            const btn1 = document.getElementById('btn-page-1');
-            const btn2 = document.getElementById('btn-page-2');
-            if (state.activePage === 1) {
-                btn1.className = "skew-x-[10deg] px-6 py-1.5 text-xs font-bold transition-all uppercase tracking-wider bg-cyber-cyan text-black shadow-[0_0_10px_rgba(0,243,255,0.6)]";
-                btn2.className = "skew-x-[10deg] px-6 py-1.5 text-xs font-bold transition-all uppercase tracking-wider text-cyber-dim hover:text-white";
-            } else {
-                btn1.className = "skew-x-[10deg] px-6 py-1.5 text-xs font-bold transition-all uppercase tracking-wider text-cyber-dim hover:text-white";
-                btn2.className = "skew-x-[10deg] px-6 py-1.5 text-xs font-bold transition-all uppercase tracking-wider bg-cyber-cyan text-black shadow-[0_0_10px_rgba(0,243,255,0.6)]";
-            }
-
-            // Render Grid
-            const grid = document.getElementById('team-grid');
-            const startIdx = (state.activePage - 1) * 6;
-            const visibleTeams = state.teams.slice(startIdx, startIdx + 6);
-            
-            grid.innerHTML = visibleTeams.map((team, idx) => {
-                const globalIdx = startIdx + idx;
-                return generateTeamCardHTML(team, globalIdx, state.counts);
-            }).join('');
-            
-            lucide.createIcons();
-        }
-
-        function extractCost(name) {
-            if (!name) return 0;
-            const match = name.match(/\d+$/);
-            return match ? parseInt(match[0], 10) : 0;
-        }
-
-        function generateTeamCardHTML(team, index, counts) {
-            const totalCost = team.generals.reduce((sum, g) => sum + extractCost(g.name), 0);
-            const totalRed = team.generals.reduce((sum, g) => sum + g.redness, 0);
-
-            // Helpers for styles
-            const getGStyle = (n, isDynamic) => {
-                if (!n) return 'bg-black/60 border-2 border-dashed border-cyber-dim text-cyber-dim hover:border-cyber-cyan hover:text-cyber-cyan hover:shadow-neon-cyan';
-                const cleanName = n.split(' ')[0];
-                const general = GENERALS_DATA.find(x => x.name.startsWith(cleanName));
-                const isDup = counts.gC[cleanName] > 1;
                 
-                let baseStyle = general ? FACTION_COLORS[general.faction] : 'bg-gray-800 text-white';
-                
-                if (isDynamic) {
-                    baseStyle = `bg-black border-2 border-cyber-yellow text-cyber-yellow shadow-neon-yellow animate-pulse-fast`;
-                } else if (isDup) {
-                    baseStyle = `bg-black border-2 border-cyber-red text-cyber-red animate-breathe-red`;
+                const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+                document.body.style.paddingRight = `${scrollbarWidth}px`;
+                document.body.style.overflow = 'hidden';
+
+                app.renderModal();
+            },
+
+            closeModal: function() {
+                window.appState.modal.isOpen = false;
+                document.body.style.overflow = '';
+                document.body.style.paddingRight = '';
+                document.getElementById('modal-container').classList.add('hidden');
+            },
+
+            // Modal Interactions
+            setModalTab: function(tab) {
+                window.appState.modal.activeTab = tab;
+                app.renderModalContent();
+            },
+
+            setModalSearch: function(val) {
+                window.appState.modal.searchTerm = val;
+                app.renderModalContent();
+            },
+
+            toggleModalItem: function(name) {
+                if (window.appState.modal.type === 'general') {
+                    app.handleModalSelect([name]);
+                    return;
                 }
-                return baseStyle;
-            };
+                let prev = window.appState.modal.selectedItems;
+                if (prev.includes(name)) {
+                    prev = prev.filter(i => i !== name);
+                } else {
+                    if (prev.length >= 2) prev = [prev[1], name];
+                    else prev = [...prev, name];
+                }
+                window.appState.modal.selectedItems = prev;
+                app.renderModalContent();
+            },
 
-            const getTStyle = (n) => {
-                if (!n) return 'bg-black/50 border border-dashed border-cyber-dim text-cyber-dim hover:border-cyber-text hover:text-white';
-                const t = TACTICS_DATA.find(x => x.name === n);
-                const isDup = n && counts.tC[n] > 1;
-                const baseColor = t ? TACTIC_COLORS[t.type] : 'bg-transparent text-white';
+            confirmModalSelection: function() {
+                if (window.appState.modal.type === 'soldierBook') {
+                    const sel = {
+                        category: window.appState.modal.sbCategory,
+                        bigOption: window.appState.modal.sbBig,
+                        smallOption1: window.appState.modal.sbSmall[0] || null,
+                        smallOption2: window.appState.modal.sbSmall[1] || null
+                    };
+                    app.handleModalSelect(sel);
+                } else {
+                    app.handleModalSelect(window.appState.modal.selectedItems.length > 0 ? window.appState.modal.selectedItems : null);
+                }
+            },
+
+            clearModalSelection: function() {
+                app.handleModalSelect(null);
+            },
+
+            handleModalSelect: function(result) {
+                const { teamIndex, row, colIndex, type } = window.appState.modal;
+                const team = window.appState.teams[teamIndex];
+
+                if (type === 'soldierBook') {
+                    team.generals[colIndex].soldierBook = result || createEmptySoldierBook();
+                } else if (type === 'general') {
+                    team.generals[colIndex].name = result ? result[0] : null;
+                } else if (type === 'tactic') {
+                    if (!result) {
+                        if (row === 'tacticsRow1') team.tacticsRow1[colIndex] = null;
+                        else team.tacticsRow2[colIndex] = null;
+                    } else if (result.length === 1) {
+                        if (row === 'tacticsRow1') team.tacticsRow1[colIndex] = result[0];
+                        else team.tacticsRow2[colIndex] = result[0];
+                    } else {
+                        team.tacticsRow1[colIndex] = result[0];
+                        team.tacticsRow2[colIndex] = result[1] || null;
+                    }
+                }
+
+                app.updateCounts();
+                app.closeModal();
+                app.render();
+            },
+
+            handleSbCategorySelect: function(cat) {
+                if (cat === window.appState.modal.sbCategory) return;
+                window.appState.modal.sbCategory = cat;
+                window.appState.modal.sbBig = null;
+                window.appState.modal.sbSmall = [];
+                app.renderModalContent();
+            },
+
+            handleSbBigSelect: function(opt) {
+                window.appState.modal.sbBig = (window.appState.modal.sbBig === opt) ? null : opt;
+                app.renderModalContent();
+            },
+
+            handleSbSmallSelect: function(opt) {
+                let prev = window.appState.modal.sbSmall;
+                if (prev.includes(opt)) prev = prev.filter(o => o !== opt);
+                else {
+                    if (prev.length >= 2) prev = [prev[1], opt];
+                    else prev = [...prev, opt];
+                }
+                window.appState.modal.sbSmall = prev;
+                app.renderModalContent();
+            },
+
+            updateGeneral: function(teamIndex, colIndex, attr) {
+                const g = window.appState.teams[teamIndex].generals[colIndex];
+                if (attr === 'isCollection') g.isCollection = !g.isCollection;
+                if (attr === 'isDynamic') g.isDynamic = !g.isDynamic;
+                app.render();
+            },
+
+            setRedness: function(teamIndex, colIndex, val) {
+                const g = window.appState.teams[teamIndex].generals[colIndex];
+                g.redness = (g.redness === val) ? 0 : val;
+                app.render();
+            },
+
+            // --- Render Logic ---
+            render: function() {
+                // Update Page Buttons
+                const btn1 = document.getElementById('btn-page-1');
+                const btn2 = document.getElementById('btn-page-2');
+                const activeClass = "skew-x-[10deg] px-6 py-1.5 text-xs font-bold transition-all uppercase tracking-wider bg-cyber-cyan text-black shadow-[0_0_10px_rgba(0,243,255,0.6)]";
+                const inactiveClass = "skew-x-[10deg] px-6 py-1.5 text-xs font-bold transition-all uppercase tracking-wider text-cyber-dim hover:text-white";
+
+                if (window.appState.activePage === 1) {
+                    btn1.className = activeClass;
+                    btn2.className = inactiveClass;
+                } else {
+                    btn1.className = inactiveClass;
+                    btn2.className = activeClass;
+                }
+
+                // Render Grid
+                const grid = document.getElementById('team-grid');
+                const startIdx = (window.appState.activePage - 1) * 6;
+                const visibleTeams = window.appState.teams.slice(startIdx, startIdx + 6);
                 
-                let style = `${baseColor} shadow-[0_0_5px_rgba(0,0,0,0.8)]`;
-                if (isDup) style += ' border-cyber-red border-2 text-cyber-red animate-breathe-red';
-                return style;
-            };
+                grid.innerHTML = visibleTeams.map((team, idx) => {
+                    const globalIdx = startIdx + idx;
+                    return app.generateTeamCardHTML(team, globalIdx, window.appState.counts);
+                }).join('');
+                
+                if (window.lucide) window.lucide.createIcons();
+            },
 
-            // Generals HTML
-            const generalsHTML = team.generals.map((g, i) => {
-                const nameDisplay = g.name ? `
-                    <div class="absolute top-1 left-1 bg-black border border-current text-[9px] px-1 font-mono">C${extractCost(g.name)}</div>
-                    <span class="text-2xl tracking-tighter text-center leading-none z-10">${g.name.split(' ')[0]}</span>
-                    <div class="absolute inset-0 bg-[linear-gradient(rgba(0,0,0,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.1)_1px,transparent_1px)] bg-[size:4px_4px] opacity-20 pointer-events-none"></div>
-                ` : `
-                    <div class="flex flex-col items-center gap-1 opacity-50">
-                      <i data-lucide="plus" width="20"></i>
-                      <span class="text-[9px] tracking-widest uppercase">Empty</span>
-                    </div>
-                `;
+            generateTeamCardHTML: function(team, index, counts) {
+                const extractCost = (name) => {
+                    if (!name) return 0;
+                    const match = name.match(/\d+$/);
+                    return match ? parseInt(match[0], 10) : 0;
+                };
+                const totalCost = team.generals.reduce((sum, g) => sum + extractCost(g.name), 0);
+                const totalRed = team.generals.reduce((sum, g) => sum + g.redness, 0);
 
-                // Controls
-                let controls = '';
-                if (g.name) {
-                    // Stars
-                    let starsHTML = '';
-                    for (let s = 1; s <= 5; s++) {
-                        const fillClass = s <= g.redness 
-                            ? 'fill-cyber-red text-cyber-red drop-shadow-[0_0_3px_#ff2a2a]' 
-                            : 'fill-cyber-dim/20 text-cyber-dim hover:text-cyber-red';
-                        starsHTML += `<button onclick="setRedness(${index}, ${i}, ${s})" class="focus:outline-none transition-transform active:scale-90"><i data-lucide="star" width="12" class="transition-colors ${fillClass}"></i></button>`;
+                const getGStyle = (n, isDynamic) => {
+                    if (!n) return 'bg-black/60 border-2 border-dashed border-cyber-dim text-cyber-dim hover:border-cyber-cyan hover:text-cyber-cyan hover:shadow-neon-cyan';
+                    const cleanName = n.split(' ')[0];
+                    const general = GENERALS_DATA.find(x => x.name.startsWith(cleanName));
+                    const isDup = counts.gC[cleanName] > 1;
+                    
+                    let baseStyle = general ? FACTION_COLORS[general.faction] : 'bg-gray-800 text-white';
+                    
+                    if (isDynamic) {
+                        baseStyle = `bg-black border-2 border-cyber-yellow text-cyber-yellow shadow-neon-yellow animate-pulse-fast`;
+                    } else if (isDup) {
+                        baseStyle = `bg-black border-2 border-cyber-red text-cyber-red animate-breathe-red`;
+                    }
+                    return baseStyle;
+                };
+
+                const getTStyle = (n) => {
+                    if (!n) return 'bg-black/50 border border-dashed border-cyber-dim text-cyber-dim hover:border-cyber-text hover:text-white';
+                    const t = TACTICS_DATA.find(x => x.name === n);
+                    const isDup = n && counts.tC[n] > 1;
+                    const baseColor = t ? TACTIC_COLORS[t.type] : 'bg-transparent text-white';
+                    let style = `${baseColor} shadow-[0_0_5px_rgba(0,0,0,0.8)]`;
+                    if (isDup) style += ' border-cyber-red border-2 text-cyber-red animate-breathe-red';
+                    return style;
+                };
+
+                const generalsHTML = team.generals.map((g, i) => {
+                    const nameDisplay = g.name ? `
+                        <div class="absolute top-1 left-1 bg-black border border-current text-[9px] px-1 font-mono">C${extractCost(g.name)}</div>
+                        <span class="text-2xl tracking-tighter text-center leading-none z-10">${g.name.split(' ')[0]}</span>
+                        <div class="absolute inset-0 bg-[linear-gradient(rgba(0,0,0,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.1)_1px,transparent_1px)] bg-[size:4px_4px] opacity-20 pointer-events-none"></div>
+                    ` : `
+                        <div class="flex flex-col items-center gap-1 opacity-50">
+                          <i data-lucide="plus" width="20"></i>
+                          <span class="text-[9px] tracking-widest uppercase">Empty</span>
+                        </div>
+                    `;
+
+                    let controls = '';
+                    if (g.name) {
+                        let starsHTML = '';
+                        for (let s = 1; s <= 5; s++) {
+                            const fillClass = s <= g.redness 
+                                ? 'fill-cyber-red text-cyber-red drop-shadow-[0_0_3px_#ff2a2a]' 
+                                : 'fill-cyber-dim/20 text-cyber-dim hover:text-cyber-red';
+                            starsHTML += `<button onclick="window.app.setRedness(${index}, ${i}, ${s})" class="focus:outline-none transition-transform active:scale-90"><i data-lucide="star" width="12" class="transition-colors ${fillClass}"></i></button>`;
+                        }
+
+                        controls = `
+                        <div class="flex flex-col gap-1.5 px-0.5 mt-1">
+                            <div class="flex gap-1 justify-center">
+                              <button onclick="window.app.updateGeneral(${index}, ${i}, 'isCollection')" class="w-6 h-6 border flex items-center justify-center transition-all ${g.isCollection ? 'bg-cyber-yellow text-black border-cyber-yellow shadow-neon-yellow' : 'bg-black text-cyber-dim border-cyber-border hover:border-white'}" title="典藏">
+                                <i data-lucide="disc" width="12"></i>
+                              </button>
+                              <button onclick="window.app.updateGeneral(${index}, ${i}, 'isDynamic')" class="w-6 h-6 border flex items-center justify-center transition-all ${g.isDynamic ? 'bg-cyber-pink text-black border-cyber-pink shadow-neon-pink' : 'bg-black text-cyber-dim border-cyber-border hover:border-white'}" title="動態">
+                                <i data-lucide="activity" width="12"></i>
+                              </button>
+                            </div>
+                            <div class="flex gap-0.5 justify-center py-1">${starsHTML}</div>
+                        </div>`;
                     }
 
-                    controls = `
-                    <div class="flex flex-col gap-1.5 px-0.5 mt-1">
-                        <div class="flex gap-1 justify-center">
-                          <button onclick="updateGeneral(${index}, ${i}, 'isCollection')" class="w-6 h-6 border flex items-center justify-center transition-all ${g.isCollection ? 'bg-cyber-yellow text-black border-cyber-yellow shadow-neon-yellow' : 'bg-black text-cyber-dim border-cyber-border hover:border-white'}" title="典藏">
-                            <i data-lucide="disc" width="12"></i>
-                          </button>
-                          <button onclick="updateGeneral(${index}, ${i}, 'isDynamic')" class="w-6 h-6 border flex items-center justify-center transition-all ${g.isDynamic ? 'bg-cyber-pink text-black border-cyber-pink shadow-neon-pink' : 'bg-black text-cyber-dim border-cyber-border hover:border-white'}" title="動態">
-                            <i data-lucide="activity" width="12"></i>
-                          </button>
-                        </div>
-                        <div class="flex gap-0.5 justify-center py-1">
-                            ${starsHTML}
-                        </div>
-                    </div>`;
-                }
-
-                return `
-                <div class="flex flex-col gap-2">
-                    <button onclick="openModal(${index}, 'general', 'generals', ${i}, '${g.name || ''}')" 
-                        class="relative w-full aspect-[4/5] clip-path-polygon flex flex-col items-center justify-center font-black transition-all active:scale-95 ${getGStyle(g.name, g.isDynamic)}"
-                        style="clip-path: polygon(15% 0, 100% 0, 100% 85%, 85% 100%, 0 100%, 0 15%)">
-                        ${nameDisplay}
-                    </button>
-                    ${controls}
-                </div>`;
-            }).join('');
-
-            // Tactics HTML
-            const tacticsRow1HTML = team.tacticsRow1.map((tac, i) => `
-                <button onclick="openModal(${index}, 'tactic', 'tacticsRow1', ${i}, '${tac || ''}')" class="w-full h-12 flex items-center justify-center text-sm font-bold transition-all active:scale-95 px-2 text-center leading-none tracking-tight ${getTStyle(tac)} clip-path-btn" style="clip-path: polygon(10px 0, 100% 0, 100% 100%, 0 100%, 0 10px)">
-                    ${tac ? `<span>${tac}</span>` : '<i data-lucide="plus" width="16" class="opacity-20"></i>'}
-                </button>
-            `).join('');
-
-            const tacticsRow2HTML = team.tacticsRow2.map((tac, i) => `
-                <button onclick="openModal(${index}, 'tactic', 'tacticsRow2', ${i}, '${tac || ''}')" class="w-full h-12 flex items-center justify-center text-sm font-bold transition-all active:scale-95 px-2 text-center leading-none tracking-tight ${getTStyle(tac)} clip-path-btn" style="clip-path: polygon(0 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%)">
-                    ${tac ? `<span>${tac}</span>` : '<i data-lucide="plus" width="16" class="opacity-20"></i>'}
-                </button>
-            `).join('');
-
-            // Soldier Book HTML
-            const soldierBooksHTML = team.generals.map((g, i) => {
-                let content = '';
-                if (g.soldierBook?.category) {
-                    content = `
-                    <div class="flex flex-col gap-0.5 w-full">
-                       <div class="text-cyber-pink font-black text-[10px]">${g.soldierBook.category}</div>
-                       ${g.soldierBook.bigOption ? `<div class="text-cyber-cyan scale-90 truncate">${g.soldierBook.bigOption}</div>` : ''}
-                       <div class="flex justify-center gap-1 scale-75 text-cyber-dim opacity-100">
-                          ${g.soldierBook.smallOption1 ? `<span>${g.soldierBook.smallOption1}</span>` : ''}
-                          ${g.soldierBook.smallOption2 ? `<span>${g.soldierBook.smallOption2}</span>` : ''}
-                       </div>
-                    </div>`;
-                } else {
-                    content = `<div class="opacity-60 flex flex-col items-center"><span>兵書</span></div>`;
-                }
-                
-                const sbClass = g.soldierBook?.category ? 'bg-cyber-panel border-cyber-pink text-cyber-text' : 'bg-black/40 border-cyber-dim text-cyber-dim hover:border-white';
-
-                return `
-                <button onclick="openModal(${index}, 'soldierBook', 'generals', ${i}, null)" class="w-full flex flex-col items-center justify-center text-[9px] font-bold transition-all active:scale-95 py-1.5 px-0.5 text-center leading-none tracking-tight clip-path-btn border ${sbClass}" style="clip-path: polygon(0 0, 100% 0, 100% 100%, 10px 100%, 0 calc(100% - 10px))">
-                    ${content}
-                </button>`;
-            }).join('');
-
-            return `
-            <div class="cyber-card p-5 group transition-all hover:border-cyber-cyan/60 animate-slide-up">
-                <div class="absolute top-0 left-0 w-2 h-2 border-t-2 border-l-2 border-cyber-cyan"></div>
-                <div class="absolute top-0 right-0 w-2 h-2 border-t-2 border-r-2 border-cyber-cyan"></div>
-                <div class="absolute bottom-0 left-0 w-2 h-2 border-b-2 border-l-2 border-cyber-cyan"></div>
-                <div class="absolute bottom-0 right-0 w-2 h-2 border-b-2 border-r-2 border-cyber-cyan"></div>
-
-                <div class="flex items-center justify-between mb-6 border-b border-cyber-border pb-2">
-                    <div class="flex flex-col">
-                        <h2 class="text-cyber-cyan font-black text-xl tracking-tighter drop-shadow-[0_0_2px_#00f3ff]">${title}</h2>
-                        <div class="h-1 w-12 bg-cyber-pink mt-1 shadow-[0_0_5px_#ff00ff]"></div>
-                    </div>
-                    <div class="flex gap-2 font-mono text-[10px]">
-                        <div class="bg-black border border-cyber-cyan px-2 py-1 text-cyber-cyan flex items-center gap-1">
-                             COST <span class="text-sm font-bold">${totalCost}</span>
-                        </div>
-                        <div class="bg-black border border-cyber-red px-2 py-1 text-cyber-red flex items-center gap-1">
-                             RED <span class="text-sm font-bold">${totalRed}</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-3 gap-4">
-                    ${generalsHTML}
-                    <div class="col-span-3 grid grid-cols-3 gap-2 mt-3 pt-3 border-t border-cyber-border">
-                        ${tacticsRow1HTML}
-                        ${tacticsRow2HTML}
-                    </div>
-                    <div class="col-span-3 grid grid-cols-3 gap-2 mt-1">
-                        ${soldierBooksHTML}
-                    </div>
-                </div>
-            </div>`;
-        }
-
-        // --- Render Modal ---
-        function renderModal() {
-            const container = document.getElementById('modal-container');
-            container.classList.remove('hidden');
-            const { type, activeTab, searchTerm, selectedItems, sbCategory, sbBig, sbSmall } = state.modal;
-
-            const icon = type === 'soldierBook' 
-                ? '<i data-lucide="book-open" width="18" class="text-cyber-yellow"></i>' 
-                : '<i data-lucide="terminal" width="18" class="text-cyber-pink"></i>';
-
-            const title = type === 'general' ? 'WARLORD' : type === 'tactic' ? 'TACTIC' : 'SOLDIER BOOK';
-            
-            let bufferInfo = '';
-            if (type === 'tactic' && selectedItems.length > 0) {
-                bufferInfo = `<span class="bg-cyber-cyan/20 text-cyber-cyan border border-cyber-cyan px-2 py-0.5 text-[10px] font-bold">BUFFER: ${selectedItems.length}/2</span>`;
-            } else if (type === 'soldierBook') {
-                bufferInfo = `<span class="bg-cyber-yellow/20 text-cyber-yellow border border-cyber-yellow px-2 py-0.5 text-[10px] font-bold">${sbCategory || '未選擇'}</span>`;
-            }
-
-            let confirmBtn = '';
-            if (type === 'tactic' || type === 'soldierBook') {
-                confirmBtn = `<button onclick="confirmModalSelection()" class="p-1.5 bg-cyber-cyan text-black hover:bg-white transition-colors shadow-[0_0_10px_#00f3ff]"><i data-lucide="check" width="18"></i></button>`;
-            }
-
-            // Tabs for General/Tactic
-            let tabsHTML = '';
-            if (type !== 'soldierBook') {
-                const tabsList = type === 'general' ? ['All', ...Object.values(Faction)] : ['All', ...Object.values(TacticType)];
-                tabsHTML = `
-                <div class="p-4 bg-black/40 border-b border-cyber-border space-y-3">
-                  <div class="relative group">
-                    <i data-lucide="search" width="16" class="absolute left-3 top-1/2 -translate-y-1/2 text-cyber-dim group-hover:text-cyber-cyan transition-colors"></i>
-                    <input type="text" placeholder="SEARCH_DATABASE..." oninput="setModalSearch(this.value)" value="${searchTerm}" class="w-full pl-10 pr-4 py-2 bg-black border border-cyber-border text-cyber-text font-mono text-sm focus:border-cyber-cyan focus:shadow-[0_0_10px_rgba(0,243,255,0.3)] outline-none transition-all placeholder:text-cyber-dim" autoFocus />
-                  </div>
-                  <div class="flex gap-2 overflow-x-auto no-scrollbar pb-1">
-                    ${tabsList.map(tab => `
-                        <button onclick="setModalTab('${tab}')" class="px-4 py-2 text-xs font-bold transition-all whitespace-nowrap uppercase tracking-wider border clip-path-btn ${activeTab === tab ? 'bg-cyber-cyan text-black border-cyber-cyan' : 'bg-transparent text-cyber-dim border-cyber-border hover:border-white hover:text-white'}" style="clip-path: polygon(10px 0, 100% 0, 100% 100%, 0 100%, 0 10px)">
-                            ${tab === 'All' ? 'ALL_DATA' : tab}
-                        </button>
-                    `).join('')}
-                  </div>
-                </div>`;
-            }
-
-            container.innerHTML = `
-            <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="closeModal()"></div>
-            <div class="relative w-full max-w-2xl bg-cyber-bg border border-cyber-cyan shadow-[0_0_30px_rgba(0,243,255,0.2)] flex flex-col max-h-[90vh] overflow-hidden clip-path-btn" style="clip-path: polygon(20px 0, 100% 0, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%, 0 20px)">
-                <div class="px-4 py-3 bg-cyber-panel border-b border-cyber-border flex items-center justify-between shrink-0">
-                  <div class="flex items-center gap-3">
-                     ${icon}
-                     <h3 class="text-lg font-bold text-cyber-text tracking-widest uppercase">
-                         SELECT // <span class="text-cyber-cyan">${title}</span>
-                     </h3>
-                     ${bufferInfo}
-                  </div>
-                  <div class="flex items-center gap-2">
-                    ${confirmBtn}
-                    <button onclick="closeModal()" class="p-1.5 bg-transparent border border-cyber-red text-cyber-red hover:bg-cyber-red hover:text-black transition-colors"><i data-lucide="x" width="18"></i></button>
-                  </div>
-                </div>
-                ${tabsHTML}
-                <div id="modal-content-body" class="flex-1 overflow-y-auto ${type === 'soldierBook' ? 'p-6 space-y-6' : 'p-4'} bg-[linear-gradient(rgba(0,243,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(0,243,255,0.03)_1px,transparent_1px)] bg-[size:20px_20px]">
-                    <!-- Dynamic Content -->
-                </div>
-            </div>`;
-            
-            renderModalContent();
-        }
-
-        function renderModalContent() {
-            const body = document.getElementById('modal-content-body');
-            const { type, activeTab, searchTerm, selectedItems, sbCategory, sbBig, sbSmall } = state.modal;
-
-            if (type !== 'soldierBook') {
-                // Filter Items
-                const items = type === 'general' 
-                  ? GENERALS_DATA.map(g => ({ name: g.name, category: g.faction, color: FACTION_COLORS[g.faction] }))
-                  : TACTICS_DATA.map(t => ({ name: t.name, category: t.type, color: TACTIC_COLORS[t.type] }));
-                
-                let filtered = items;
-                if (activeTab !== 'All') filtered = filtered.filter(i => i.category === activeTab);
-                if (searchTerm) filtered = filtered.filter(i => i.name.toLowerCase().includes(searchTerm.toLowerCase()));
-
-                const clearBtn = selectedItems.length > 0 ? `
-                    <button onclick="clearModalSelection()" class="w-full py-2 bg-cyber-red/10 text-cyber-red border border-cyber-red hover:bg-cyber-red hover:text-black mb-4 flex items-center justify-center gap-2 font-bold text-xs uppercase tracking-widest transition-all">
-                      <i data-lucide="trash-2" width="14"></i> CLEAR SELECTION
-                    </button>` : '';
-                
-                const grid = filtered.map(item => {
-                    const isSel = selectedItems.includes(item.name);
-                    const borderClass = isSel ? 'border-cyber-cyan shadow-[0_0_10px_rgba(0,243,255,0.4)]' : 'border-cyber-border hover:border-white';
-                    const textClass = isSel ? 'text-cyber-cyan' : 'text-cyber-dim';
-                    
-                    // Simple regex to remove color utility classes for the inner box to just use the border color logic or similar
-                    // Using the pre-defined color constants directly
-                    let innerColorClass = item.color.replace('border-2', 'border').replace(/shadow-\[.*?\]/g, '');
-                    
                     return `
-                    <button onclick="toggleModalItem('${item.name}')" class="group flex flex-col items-center p-2 bg-black/60 border transition-all active:scale-95 hover:shadow-[0_0_10px_rgba(255,255,255,0.2)] ${borderClass}">
-                        <div class="w-full aspect-square mb-2 flex items-center justify-center font-black text-xs text-center leading-tight p-1 ${innerColorClass} bg-opacity-20">
-                          ${item.name.split(' ')[0]}
-                        </div>
-                        <span class="text-[10px] font-bold truncate w-full text-center font-mono group-hover:text-white ${textClass}">${item.name}</span>
-                    </button>`;
+                    <div class="flex flex-col gap-2">
+                        <button onclick="window.app.openModal(${index}, 'general', 'generals', ${i}, '${g.name || ''}')" 
+                            class="relative w-full aspect-[4/5] clip-path-polygon flex flex-col items-center justify-center font-black transition-all active:scale-95 ${getGStyle(g.name, g.isDynamic)}"
+                            style="clip-path: polygon(15% 0, 100% 0, 100% 85%, 85% 100%, 0 100%, 0 15%)">
+                            ${nameDisplay}
+                        </button>
+                        ${controls}
+                    </div>`;
                 }).join('');
 
-                body.innerHTML = `${clearBtn}<div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">${grid}</div>`;
-            } else {
-                // Soldier Book Render
-                const categories = Object.keys(SOLDIER_BOOK_DATA).map(cat => `
-                    <button onclick="handleSbCategorySelect('${cat}')" class="py-3 px-2 border text-sm font-bold transition-all ${sbCategory === cat ? 'bg-cyber-yellow text-black border-cyber-yellow shadow-neon-yellow' : 'bg-transparent text-cyber-dim border-cyber-border hover:text-white hover:border-white'}">
-                      ${cat}
+                const tacticsRow1HTML = team.tacticsRow1.map((tac, i) => `
+                    <button onclick="window.app.openModal(${index}, 'tactic', 'tacticsRow1', ${i}, '${tac || ''}')" class="w-full h-12 flex items-center justify-center text-sm font-bold transition-all active:scale-95 px-2 text-center leading-none tracking-tight ${getTStyle(tac)} clip-path-btn" style="clip-path: polygon(10px 0, 100% 0, 100% 100%, 0 100%, 0 10px)">
+                        ${tac ? `<span>${tac}</span>` : '<i data-lucide="plus" width="16" class="opacity-20"></i>'}
                     </button>
                 `).join('');
 
-                let content = `
-                <div class="mb-6">
-                    <h4 class="text-cyber-yellow font-bold mb-3 border-l-4 border-cyber-yellow pl-2 uppercase tracking-wider">軍事類別 (CLASS)</h4>
-                    <div class="grid grid-cols-3 gap-2">${categories}</div>
-                </div>`;
+                const tacticsRow2HTML = team.tacticsRow2.map((tac, i) => `
+                    <button onclick="window.app.openModal(${index}, 'tactic', 'tacticsRow2', ${i}, '${tac || ''}')" class="w-full h-12 flex items-center justify-center text-sm font-bold transition-all active:scale-95 px-2 text-center leading-none tracking-tight ${getTStyle(tac)} clip-path-btn" style="clip-path: polygon(0 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%)">
+                        ${tac ? `<span>${tac}</span>` : '<i data-lucide="plus" width="16" class="opacity-20"></i>'}
+                    </button>
+                `).join('');
 
-                if (sbCategory && SOLDIER_BOOK_DATA[sbCategory]) {
-                    const data = SOLDIER_BOOK_DATA[sbCategory];
+                const soldierBooksHTML = team.generals.map((g, i) => {
+                    let content = '';
+                    const sbClass = g.soldierBook?.category ? 'bg-cyber-panel border-cyber-pink text-cyber-text' : 'bg-black/40 border-cyber-dim text-cyber-dim hover:border-white';
                     
-                    const bigOpts = data.big.map(opt => `
-                        <button onclick="handleSbBigSelect('${opt}')" class="flex items-center justify-between p-3 border text-left transition-all ${sbBig === opt ? 'bg-cyber-cyan/20 border-cyber-cyan text-cyber-cyan shadow-[0_0_10px_rgba(0,243,255,0.3)]' : 'bg-transparent border-cyber-border text-cyber-dim hover:border-white hover:text-white'}">
-                          <span class="text-sm font-bold">${opt}</span>
-                          ${sbBig === opt ? '<i data-lucide="check" width="16" class="text-cyber-cyan"></i>' : ''}
+                    if (g.soldierBook?.category) {
+                        content = `
+                        <div class="flex flex-col gap-0.5 w-full">
+                           <div class="text-cyber-pink font-black text-[10px]">${g.soldierBook.category}</div>
+                           ${g.soldierBook.bigOption ? `<div class="text-cyber-cyan scale-90 truncate">${g.soldierBook.bigOption}</div>` : ''}
+                           <div class="flex justify-center gap-1 scale-75 text-cyber-dim opacity-100">
+                              ${g.soldierBook.smallOption1 ? `<span>${g.soldierBook.smallOption1}</span>` : ''}
+                              ${g.soldierBook.smallOption2 ? `<span>${g.soldierBook.smallOption2}</span>` : ''}
+                           </div>
+                        </div>`;
+                    } else {
+                        content = `<div class="opacity-60 flex flex-col items-center"><span>兵書</span></div>`;
+                    }
+                    return `
+                    <button onclick="window.app.openModal(${index}, 'soldierBook', 'generals', ${i}, null)" class="w-full flex flex-col items-center justify-center text-[9px] font-bold transition-all active:scale-95 py-1.5 px-0.5 text-center leading-none tracking-tight clip-path-btn border ${sbClass}" style="clip-path: polygon(0 0, 100% 0, 100% 100%, 10px 100%, 0 calc(100% - 10px))">
+                        ${content}
+                    </button>`;
+                }).join('');
+
+                return `
+                <div class="cyber-card p-5 group transition-all hover:border-cyber-cyan/60 animate-slide-up" style="animation-delay: ${(index % 6) * 0.1}s">
+                    <div class="absolute top-0 left-0 w-2 h-2 border-t-2 border-l-2 border-cyber-cyan"></div>
+                    <div class="absolute top-0 right-0 w-2 h-2 border-t-2 border-r-2 border-cyber-cyan"></div>
+                    <div class="absolute bottom-0 left-0 w-2 h-2 border-b-2 border-l-2 border-cyber-cyan"></div>
+                    <div class="absolute bottom-0 right-0 w-2 h-2 border-b-2 border-r-2 border-cyber-cyan"></div>
+
+                    <div class="flex items-center justify-between mb-6 border-b border-cyber-border pb-2">
+                        <div class="flex flex-col">
+                            <h2 class="text-cyber-cyan font-black text-xl tracking-tighter drop-shadow-[0_0_2px_#00f3ff]">SQUAD ${index + 1}</h2>
+                            <div class="h-1 w-12 bg-cyber-pink mt-1 shadow-[0_0_5px_#ff00ff]"></div>
+                        </div>
+                        <div class="flex gap-2 font-mono text-[10px]">
+                            <div class="bg-black border border-cyber-cyan px-2 py-1 text-cyber-cyan flex items-center gap-1">
+                                 COST <span class="text-sm font-bold">${totalCost}</span>
+                            </div>
+                            <div class="bg-black border border-cyber-red px-2 py-1 text-cyber-red flex items-center gap-1">
+                                 RED <span class="text-sm font-bold">${totalRed}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-3 gap-4">
+                        ${generalsHTML}
+                        <div class="col-span-3 grid grid-cols-3 gap-2 mt-3 pt-3 border-t border-cyber-border">
+                            ${tacticsRow1HTML}
+                            ${tacticsRow2HTML}
+                        </div>
+                        <div class="col-span-3 grid grid-cols-3 gap-2 mt-1">
+                            ${soldierBooksHTML}
+                        </div>
+                    </div>
+                </div>`;
+            },
+
+            renderModal: function() {
+                const container = document.getElementById('modal-container');
+                container.classList.remove('hidden');
+                const { type, activeTab, searchTerm, selectedItems, sbCategory } = window.appState.modal;
+                const icon = type === 'soldierBook' 
+                    ? '<i data-lucide="book-open" width="18" class="text-cyber-yellow"></i>' 
+                    : '<i data-lucide="terminal" width="18" class="text-cyber-pink"></i>';
+                const title = type === 'general' ? 'WARLORD' : type === 'tactic' ? 'TACTIC' : 'SOLDIER BOOK';
+                
+                let bufferInfo = '';
+                if (type === 'tactic' && selectedItems.length > 0) {
+                    bufferInfo = `<span class="bg-cyber-cyan/20 text-cyber-cyan border border-cyber-cyan px-2 py-0.5 text-[10px] font-bold">BUFFER: ${selectedItems.length}/2</span>`;
+                } else if (type === 'soldierBook') {
+                    bufferInfo = `<span class="bg-cyber-yellow/20 text-cyber-yellow border border-cyber-yellow px-2 py-0.5 text-[10px] font-bold">${sbCategory || '未選擇'}</span>`;
+                }
+
+                let confirmBtn = '';
+                if (type === 'tactic' || type === 'soldierBook') {
+                    confirmBtn = `<button onclick="window.app.confirmModalSelection()" class="p-1.5 bg-cyber-cyan text-black hover:bg-white transition-colors shadow-[0_0_10px_#00f3ff]"><i data-lucide="check" width="18"></i></button>`;
+                }
+
+                // Tabs
+                let tabsHTML = '';
+                if (type !== 'soldierBook') {
+                    const tabsList = type === 'general' ? ['All', ...Object.values(Faction)] : ['All', ...Object.values(TacticType)];
+                    tabsHTML = `
+                    <div class="p-4 bg-black/40 border-b border-cyber-border space-y-3">
+                      <div class="relative group">
+                        <i data-lucide="search" width="16" class="absolute left-3 top-1/2 -translate-y-1/2 text-cyber-dim group-hover:text-cyber-cyan transition-colors"></i>
+                        <input type="text" placeholder="SEARCH_DATABASE..." oninput="window.app.setModalSearch(this.value)" value="${searchTerm}" class="w-full pl-10 pr-4 py-2 bg-black border border-cyber-border text-cyber-text font-mono text-sm focus:border-cyber-cyan focus:shadow-[0_0_10px_rgba(0,243,255,0.3)] outline-none transition-all placeholder:text-cyber-dim" autoFocus />
+                      </div>
+                      <div class="flex gap-2 overflow-x-auto no-scrollbar pb-1">
+                        ${tabsList.map(tab => `
+                            <button onclick="window.app.setModalTab('${tab}')" class="px-4 py-2 text-xs font-bold transition-all whitespace-nowrap uppercase tracking-wider border clip-path-btn ${activeTab === tab ? 'bg-cyber-cyan text-black border-cyber-cyan' : 'bg-transparent text-cyber-dim border-cyber-border hover:border-white hover:text-white'}" style="clip-path: polygon(10px 0, 100% 0, 100% 100%, 0 100%, 0 10px)">
+                                ${tab === 'All' ? 'ALL_DATA' : tab}
+                            </button>
+                        `).join('')}
+                      </div>
+                    </div>`;
+                }
+
+                container.innerHTML = `
+                <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="window.app.closeModal()"></div>
+                <div class="relative w-full max-w-2xl bg-cyber-bg border border-cyber-cyan shadow-[0_0_30px_rgba(0,243,255,0.2)] flex flex-col max-h-[90vh] overflow-hidden clip-path-btn" style="clip-path: polygon(20px 0, 100% 0, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%, 0 20px)">
+                    <div class="px-4 py-3 bg-cyber-panel border-b border-cyber-border flex items-center justify-between shrink-0">
+                      <div class="flex items-center gap-3">
+                         ${icon}
+                         <h3 class="text-lg font-bold text-cyber-text tracking-widest uppercase">
+                             SELECT // <span class="text-cyber-cyan">${title}</span>
+                         </h3>
+                         ${bufferInfo}
+                      </div>
+                      <div class="flex items-center gap-2">
+                        ${confirmBtn}
+                        <button onclick="window.app.closeModal()" class="p-1.5 bg-transparent border border-cyber-red text-cyber-red hover:bg-cyber-red hover:text-black transition-colors"><i data-lucide="x" width="18"></i></button>
+                      </div>
+                    </div>
+                    ${tabsHTML}
+                    <div id="modal-content-body" class="flex-1 overflow-y-auto ${type === 'soldierBook' ? 'p-6 space-y-6' : 'p-4'} bg-[linear-gradient(rgba(0,243,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(0,243,255,0.03)_1px,transparent_1px)] bg-[size:20px_20px]">
+                    </div>
+                </div>`;
+                app.renderModalContent();
+            },
+
+            renderModalContent: function() {
+                const body = document.getElementById('modal-content-body');
+                if (!body) return;
+                const { type, activeTab, searchTerm, selectedItems, sbCategory, sbBig, sbSmall } = window.appState.modal;
+
+                if (type !== 'soldierBook') {
+                    const items = type === 'general' 
+                      ? GENERALS_DATA.map(g => ({ name: g.name, category: g.faction, color: FACTION_COLORS[g.faction] }))
+                      : TACTICS_DATA.map(t => ({ name: t.name, category: t.type, color: TACTIC_COLORS[t.type] }));
+                    
+                    let filtered = items;
+                    if (activeTab !== 'All') filtered = filtered.filter(i => i.category === activeTab);
+                    if (searchTerm) filtered = filtered.filter(i => i.name.toLowerCase().includes(searchTerm.toLowerCase()));
+
+                    const clearBtn = selectedItems.length > 0 ? `
+                        <button onclick="window.app.clearModalSelection()" class="w-full py-2 bg-cyber-red/10 text-cyber-red border border-cyber-red hover:bg-cyber-red hover:text-black mb-4 flex items-center justify-center gap-2 font-bold text-xs uppercase tracking-widest transition-all">
+                          <i data-lucide="trash-2" width="14"></i> CLEAR SELECTION
+                        </button>` : '';
+                    
+                    const grid = filtered.map(item => {
+                        const isSel = selectedItems.includes(item.name);
+                        const borderClass = isSel ? 'border-cyber-cyan shadow-[0_0_10px_rgba(0,243,255,0.4)]' : 'border-cyber-border hover:border-white';
+                        const textClass = isSel ? 'text-cyber-cyan' : 'text-cyber-dim';
+                        let innerColorClass = item.color.replace('border-2', 'border').replace(/shadow-\[.*?\]/g, '');
+                        return `
+                        <button onclick="window.app.toggleModalItem('${item.name}')" class="group flex flex-col items-center p-2 bg-black/60 border transition-all active:scale-95 hover:shadow-[0_0_10px_rgba(255,255,255,0.2)] ${borderClass}">
+                            <div class="w-full aspect-square mb-2 flex items-center justify-center font-black text-xs text-center leading-tight p-1 ${innerColorClass} bg-opacity-20">
+                              ${item.name.split(' ')[0]}
+                            </div>
+                            <span class="text-[10px] font-bold truncate w-full text-center font-mono group-hover:text-white ${textClass}">${item.name}</span>
+                        </button>`;
+                    }).join('');
+                    body.innerHTML = `${clearBtn}<div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">${grid}</div>`;
+                } else {
+                    const categories = Object.keys(SOLDIER_BOOK_DATA).map(cat => `
+                        <button onclick="window.app.handleSbCategorySelect('${cat}')" class="py-3 px-2 border text-sm font-bold transition-all ${sbCategory === cat ? 'bg-cyber-yellow text-black border-cyber-yellow shadow-neon-yellow' : 'bg-transparent text-cyber-dim border-cyber-border hover:text-white hover:border-white'}">
+                          ${cat}
                         </button>
                     `).join('');
 
-                    const smallOpts = data.small.map(opt => {
-                        const isSel = sbSmall.includes(opt);
-                        return `
-                        <button onclick="handleSbSmallSelect('${opt}')" class="p-2 border text-sm font-bold transition-all ${isSel ? 'bg-cyber-pink/20 border-cyber-pink text-cyber-pink shadow-[0_0_10px_rgba(255,0,255,0.3)]' : 'bg-transparent border-cyber-border text-cyber-dim hover:border-white hover:text-white'}">
-                            ${opt}
-                        </button>`;
-                    }).join('');
-
-                    content += `
-                    <div class="space-y-6">
-                        <div>
-                           <h4 class="text-cyber-cyan font-bold mb-3 border-l-4 border-cyber-cyan pl-2 uppercase tracking-wider">核心 (BIG) <span class="text-xs text-cyber-dim ml-2">Select 1</span></h4>
-                           <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">${bigOpts}</div>
-                        </div>
-                        <div>
-                           <h4 class="text-cyber-pink font-bold mb-3 border-l-4 border-cyber-pink pl-2 uppercase tracking-wider">進階 (SMALL) <span class="text-xs text-cyber-dim ml-2">Select 2</span></h4>
-                           <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">${smallOpts}</div>
-                        </div>
+                    let content = `
+                    <div class="mb-6">
+                        <h4 class="text-cyber-yellow font-bold mb-3 border-l-4 border-cyber-yellow pl-2 uppercase tracking-wider">軍事類別 (CLASS)</h4>
+                        <div class="grid grid-cols-3 gap-2">${categories}</div>
                     </div>`;
-                } else {
-                    content += `<div class="text-center py-10 text-cyber-dim opacity-50 font-mono">// WAITING FOR INPUT...</div>`;
+
+                    if (sbCategory && SOLDIER_BOOK_DATA[sbCategory]) {
+                        const data = SOLDIER_BOOK_DATA[sbCategory];
+                        const bigOpts = data.big.map(opt => `
+                            <button onclick="window.app.handleSbBigSelect('${opt}')" class="flex items-center justify-between p-3 border text-left transition-all ${sbBig === opt ? 'bg-cyber-cyan/20 border-cyber-cyan text-cyber-cyan shadow-[0_0_10px_rgba(0,243,255,0.3)]' : 'bg-transparent border-cyber-border text-cyber-dim hover:border-white hover:text-white'}">
+                              <span class="text-sm font-bold">${opt}</span>
+                              ${sbBig === opt ? '<i data-lucide="check" width="16" class="text-cyber-cyan"></i>' : ''}
+                            </button>
+                        `).join('');
+
+                        const smallOpts = data.small.map(opt => {
+                            const isSel = sbSmall.includes(opt);
+                            return `
+                            <button onclick="window.app.handleSbSmallSelect('${opt}')" class="p-2 border text-sm font-bold transition-all ${isSel ? 'bg-cyber-pink/20 border-cyber-pink text-cyber-pink shadow-[0_0_10px_rgba(255,0,255,0.3)]' : 'bg-transparent border-cyber-border text-cyber-dim hover:border-white hover:text-white'}">
+                                ${opt}
+                            </button>`;
+                        }).join('');
+
+                        content += `
+                        <div class="space-y-6">
+                            <div>
+                               <h4 class="text-cyber-cyan font-bold mb-3 border-l-4 border-cyber-cyan pl-2 uppercase tracking-wider">核心 (BIG) <span class="text-xs text-cyber-dim ml-2">Select 1</span></h4>
+                               <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">${bigOpts}</div>
+                            </div>
+                            <div>
+                               <h4 class="text-cyber-pink font-bold mb-3 border-l-4 border-cyber-pink pl-2 uppercase tracking-wider">進階 (SMALL) <span class="text-xs text-cyber-dim ml-2">Select 2</span></h4>
+                               <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">${smallOpts}</div>
+                            </div>
+                        </div>`;
+                    } else {
+                        content += `<div class="text-center py-10 text-cyber-dim opacity-50 font-mono">// WAITING FOR INPUT...</div>`;
+                    }
+                    content += `
+                    <div class="mt-8 pt-4 border-t border-cyber-border">
+                       <button onclick="window.app.clearModalSelection()" class="w-full py-2 text-cyber-red text-sm font-bold hover:bg-cyber-red/10 border border-transparent hover:border-cyber-red transition-colors uppercase tracking-widest">
+                          RESET CONFIGURATION
+                       </button>
+                    </div>`;
+                    body.innerHTML = content;
                 }
-
-                content += `
-                <div class="mt-8 pt-4 border-t border-cyber-border">
-                   <button onclick="clearModalSelection()" class="w-full py-2 text-cyber-red text-sm font-bold hover:bg-cyber-red/10 border border-transparent hover:border-cyber-red transition-colors uppercase tracking-widest">
-                      RESET CONFIGURATION
-                   </button>
-                </div>`;
-                
-                body.innerHTML = content;
+                if (window.lucide) window.lucide.createIcons();
             }
-            lucide.createIcons();
-        }
+        };
 
-        // --- Init ---
-        loadState();
-        renderApp();
+        // Expose to window for inline onclicks
+        window.app = app;
 
+        // Init
+        document.addEventListener('DOMContentLoaded', () => {
+            app.loadState();
+            app.render();
+        });
+    })();
     </script>
 </body>
 </html>
